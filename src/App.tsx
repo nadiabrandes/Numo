@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Check, CircleHelp, Home, Share2, Sparkles, Trophy, X } from 'lucide-react';
+import { ArrowLeft, Check, ChevronRight, CircleHelp, Home, Share2, Sparkles, Trophy, X } from 'lucide-react';
 import { generateWorksheet, parseAnswer, signFor, validateAnswer, type Difficulty, type MathExercise, type Status, type WorksheetConfig } from './features/math/engine';
 import './styles.css';
 
@@ -185,12 +185,14 @@ function App() {
       <p className="sr-only" aria-live="polite">{live}</p>
 
       {saved.screen === 'welcome' && <section className="welcome">
-        <div className="brand"><Logo /><Mascot /></div>
+        <div className="brand"><img className="welcome-mascot" src={`${import.meta.env.BASE_URL}assets/numo-mascot.svg`} alt="Numo מניף שרביט קסמים" /><Logo /></div>
         <h1>חשבון בכיף</h1>
         <p className="lead">מתרגלים, מתקדמים ומצליחים</p>
         <div className="welcome-actions">
-          <button className="primary" onClick={() => saved.exercises.some((exercise) => exercise.status !== 'correct') ? setShowConfirm(true) : setSaved((current) => ({ ...current, screen: 'setup' }))}>בואו נתחיל <span>›</span></button>
-          {saved.exercises.some((exercise) => exercise.status !== 'correct') && <button className="outline" onClick={() => setSaved((current) => ({ ...current, screen: current.exercises.some((exercise) => exercise.status === 'incorrect' || exercise.status === 'correct') ? 'checking' : 'worksheet' }))}>המשך תרגול שמור</button>}
+          <button className="primary" onClick={() => saved.exercises.some((exercise) => exercise.status !== 'correct') ? setShowConfirm(true) : start()}>בואו נתחיל <span>›</span></button>
+          {saved.exercises.some((exercise) => exercise.status !== 'correct')
+            ? <button className="outline" onClick={() => setSaved((current) => ({ ...current, screen: current.exercises.some((exercise) => exercise.status === 'incorrect' || exercise.status === 'correct') ? 'checking' : 'worksheet' }))}>המשך תרגול שמור</button>
+            : <button className="outline" onClick={() => setSaved((current) => ({ ...current, screen: 'setup' }))}>התאמת תרגול</button>}
         </div>
         <small>גרסה {__APP_VERSION__}</small>
       </section>}
@@ -224,14 +226,13 @@ function App() {
         <header className="top"><button className="icon-btn" aria-label="חזרה למסך הבית" onClick={goHome}><ArrowLeft /></button><Logo /></header>
         <h1>כל הכבוד!</h1>
         <p className="lead">{accuracy === 100 ? 'פתרת את כל התרגילים בהצלחה!' : `ענית נכון על ${correctCount} מתוך ${saved.exercises.length} תרגילים.`}</p>
-        <Mascot big />
+        <img className="completion-mascot" src={`${import.meta.env.BASE_URL}assets/numo-mascot.svg`} alt="Numo חוגג עם שרביט קסמים" />
         <div className="stats"><div><Sparkles /><span>תרגילים</span><b>{saved.exercises.length}</b></div><div><Check /><span>נכונים</span><b>{correctCount}</b></div><div><Trophy /><span>דיוק</span><b>{accuracy}%</b></div></div>
         <p className="date">הושלם בתאריך {new Date(saved.completedAt ?? Date.now()).toLocaleDateString('he-IL')}</p>
-        <div className="congrats-note"><span className="trophy" aria-hidden="true">🏆</span><p><b>{accuracy === 100 ? 'כל הכבוד!' : 'התקדמות נהדרת!'}</b><span>{accuracy === 100 ? 'את/ה משתפר/ת ממש!' : 'כל תרגיל מקרב אותך להצלחה!'}</span></p></div>
-        <button className="primary" onClick={share}><Share2 /> שתף להורה</button>
-        <button className="outline" onClick={printWorksheet}>הורדת PDF</button>
-        <button className="outline" onClick={() => start(saved.config)}>תרגילים חדשים</button>
-        <button className="text-btn" onClick={goHome}><Home /> חזרה למסך הבית</button>
+        <div className="congrats-note"><Trophy aria-hidden="true" /><p><b>{accuracy === 100 ? 'כל הכבוד!' : 'התקדמות נהדרת!'}</b><span>{accuracy === 100 ? 'את/ה משתפר/ת ממש!' : 'כל תרגיל מקרב אותך להצלחה!'}</span></p></div>
+        <button className="primary completion-continue" onClick={() => start(saved.config)}>המשך לתרגילים חדשים <ChevronRight /></button>
+        <button className="outline completion-home" onClick={goHome}><Home /> חזרה למסך הבית</button>
+        <details className="export-options"><summary>שיתוף והורדת דף התרגול</summary><div><button className="text-btn" onClick={share}><Share2 /> שתף להורה</button><button className="text-btn" onClick={printWorksheet}>הורדת PDF</button></div></details>
         <small>גרסה {__APP_VERSION__}</small>
       </section>}
 

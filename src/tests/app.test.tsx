@@ -7,7 +7,6 @@ beforeEach(() => localStorage.clear());
 function startWorksheet() {
   const { container } = render(<App />);
   fireEvent.click(screen.getByRole('button', { name: /בואו נתחיל/ }));
-  fireEvent.click(screen.getByRole('button', { name: /התחילו לתרגל/ }));
   return container;
 }
 

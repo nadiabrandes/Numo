@@ -219,3 +219,47 @@ body{min-height:100svh;background:radial-gradient(ellipse at 50% 15%,#fff 0,#f8f
 }
 .work-screen .exercise-row input{scroll-margin-block:130px}
 .work-screen .submit{bottom:calc(12px + env(safe-area-inset-bottom))}
+
+/* Completion screen aligned to the supplied celebration reference. */
+.complete{min-height:calc(100svh - 56px);padding:0 0 calc(10px + env(safe-area-inset-bottom));justify-content:flex-start;gap:0}
+.complete .top{width:100%;height:62px;flex:none;margin:0}
+.complete h1{margin:14px 0 0;font-size:clamp(40px,9vw,54px);line-height:1.12}
+.complete .lead{margin:8px 0 0;color:#173d7c;font-size:clamp(19px,4.8vw,26px);line-height:1.4}
+.completion-mascot{display:block;width:clamp(210px,58vw,340px);height:auto;max-height:clamp(190px,27svh,270px);object-fit:contain;margin:10px 0 12px}
+.complete .stats{flex:none;width:100%;min-height:164px;margin:0 0 14px;padding:18px 8px;border-radius:28px;box-shadow:0 12px 30px #173b7012}
+.complete .stats div{align-content:center;gap:6px}
+.complete .stats div+div{border-right:2px solid #e3ebf8}
+.complete .stats svg{width:44px;height:44px;stroke-width:3}
+.complete .stats span{font-size:clamp(14px,3.7vw,20px);color:#173d7c}
+.complete .stats b{font-size:clamp(27px,6vw,36px);line-height:1.1}
+.complete .congrats-note{display:flex;align-items:center;justify-content:center;gap:24px;width:100%;min-height:112px;margin:0 0 18px;padding:16px 22px;border-radius:30px;background:linear-gradient(110deg,#edf5ff,#e9f3ff)}
+.complete .congrats-note>svg{width:74px;height:74px;flex:none;color:#ffbb22;fill:#ffc83d;stroke:#ffae16;stroke-width:1.8;filter:drop-shadow(0 5px 3px #e99c3433)}
+.complete .congrats-note p{gap:5px;font-size:clamp(19px,4.5vw,25px);text-align:right}
+.complete .congrats-note p span{font-size:clamp(16px,4vw,22px);color:#5b7193}
+.complete .completion-continue,.complete .completion-home{width:100%;max-width:none;margin:0}
+.complete .completion-continue{min-height:clamp(68px,8svh,84px);font-size:clamp(21px,5vw,28px);background:linear-gradient(110deg,#239af8,#0874f6);box-shadow:0 12px 25px #0874f53d}
+.complete .completion-continue svg{width:28px;height:28px;stroke-width:3}
+.complete .completion-home{min-height:62px;margin-top:10px;border:2px solid #d3e3fc;border-radius:999px;background:#ffffff70;color:#164482;font-size:clamp(18px,4.5vw,23px)}
+.complete .completion-home svg{width:25px;height:25px;fill:#164482;stroke-width:2.5}
+.complete .export-options{width:100%;margin-top:8px;color:#45618b;text-align:center;font-size:14px}
+.complete .export-options summary{padding:7px;cursor:pointer;list-style-position:inside}
+.complete .export-options>div{display:flex;justify-content:center;gap:14px}
+.complete .export-options .text-btn{width:auto;min-height:40px;margin:0;padding:6px 12px;font-size:14px}
+.complete small{margin-top:auto;padding-top:8px;color:#50617e;font-size:14px}
+.complete::before{top:39%;left:2%;right:2%;font-size:clamp(16px,4vw,24px);letter-spacing:clamp(4px,2vw,12px)}
+@media(max-height:740px){.complete{min-height:calc(100svh - 56px)}.complete .top{height:52px}.complete h1{margin-top:6px;font-size:38px}.complete .lead{font-size:18px}.completion-mascot{width:clamp(180px,44vw,240px);max-height:22svh;margin:4px 0 8px}.complete .stats{min-height:130px;padding-block:12px}.complete .stats svg{width:34px;height:34px}.complete .congrats-note{min-height:82px;margin-bottom:10px}.complete .congrats-note>svg{width:54px;height:54px}.complete .completion-continue{min-height:60px}.complete .completion-home{min-height:52px}}
+@media(min-width:600px){.complete{width:min(100%,720px)}.completion-mascot{width:min(36vw,330px);max-height:30svh}}
+
+/* Welcome screen spacing and hero artwork tuned to the supplied phone design. */
+.welcome{min-height:calc(100svh - 56px);padding:clamp(18px,3svh,30px) 0 calc(16px + env(safe-area-inset-bottom));justify-content:flex-start}
+.welcome .brand{height:40svh;min-height:300px;max-height:390px;margin:0 0 8px}
+.welcome .brand .logo{width:min(74vw,470px)}
+.welcome-mascot{position:absolute;z-index:1;width:clamp(112px,29vw,138px);height:auto;right:9%;bottom:17%;filter:drop-shadow(0 10px 10px #173e701c)}
+.welcome h1{margin:8px 0 0;font-size:clamp(30px,7vw,40px);font-weight:500;color:#344766}
+.welcome .lead{margin:18px 0 0;font-size:clamp(18px,4.8vw,24px);color:#526789}
+.welcome-actions{width:min(88%,500px);gap:14px;margin-top:clamp(38px,6svh,64px)}
+.welcome-actions .primary{min-height:clamp(68px,8svh,82px);font-size:clamp(23px,6vw,30px)}
+.welcome-actions .outline{min-height:62px;border:2px solid #c7dafa;background:#ffffff72;color:#164482;font-size:clamp(18px,4.8vw,22px)}
+.welcome .decor{opacity:.3}
+@media(max-height:740px){.welcome .brand{height:36svh;min-height:240px}.welcome-mascot{width:clamp(100px,25vw,122px);bottom:15%}.welcome-actions{margin-top:clamp(28px,4.5svh,42px)}.welcome-actions .primary{min-height:62px}.welcome-actions .outline{min-height:54px}}
+@media(min-width:600px){.welcome .brand{height:42svh;max-height:440px}.welcome .brand .logo{width:min(56vw,470px)}.welcome-mascot{width:136px;right:12%}.welcome-actions{width:min(88%,520px)}}

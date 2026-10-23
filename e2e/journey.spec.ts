@@ -19,7 +19,7 @@ test('worksheet correction, completion, and PNG sharing', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
   await expect(page).toHaveTitle('NUMO — חשבון בכיף');
   await expect(page.getByRole('heading', { name: 'חשבון בכיף' })).toBeVisible();
-  await page.getByRole('button', { name: /בואו נתחיל/ }).click();
+  await page.getByRole('button', { name: 'התאמת תרגול' }).click();
   await expect(page.getByRole('heading', { name: 'בוחרים תרגול' })).toBeVisible();
   await page.getByRole('button', { name: /התחילו לתרגל/ }).click();
   await expect(page.getByRole('heading', { name: 'פותרים תרגילים' })).toBeVisible();
@@ -43,6 +43,7 @@ test('worksheet correction, completion, and PNG sharing', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'כל הכבוד!' })).toBeVisible();
   await expect(page.getByText('100%')).toBeVisible();
 
+  await page.getByText('שיתוף והורדת דף התרגול').click();
   const popupPromise = page.waitForEvent('popup');
   await page.getByRole('button', { name: 'הורדת PDF' }).click();
   const pdfWindow = await popupPromise;
@@ -53,7 +54,7 @@ test('worksheet correction, completion, and PNG sharing', async ({ page }) => {
   await page.getByRole('button', { name: /שתף להורה/ }).click();
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toBe('numo-worksheet.png');
-  await page.getByRole('button', { name: 'תרגילים חדשים' }).click();
+  await page.getByRole('button', { name: /המשך לתרגילים חדשים/ }).click();
   await expect(page.getByRole('heading', { name: 'פותרים תרגילים' })).toBeVisible();
   await expect(page.getByRole('textbox')).toHaveCount(25);
 });
@@ -62,7 +63,6 @@ test('unfinished session recovers after refresh and new worksheet needs confirma
   await page.setViewportSize({ width: 320, height: 740 });
   await page.goto('/');
   await page.getByRole('button', { name: /בואו נתחיל/ }).click();
-  await page.getByRole('button', { name: /התחילו לתרגל/ }).click();
   const inputs = page.getByRole('textbox');
   await inputs.first().fill('17');
   await expect(page.locator('.submit')).toHaveCSS('position', 'sticky');
@@ -81,11 +81,10 @@ test('grade and difficulty selection survive a refresh', async ({ page }) => {
   await page.goto('/');
   await page.keyboard.press('Tab');
   await expect(page.getByRole('button', { name: /בואו נתחיל/ })).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('button', { name: 'התאמת תרגול' })).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(page.getByRole('heading', { name: 'בוחרים תרגול' })).toBeVisible();
-  await page.keyboard.press('Tab');
-  await page.keyboard.press('Tab');
-  await expect(page.getByLabel('בחרו כיתה')).toBeFocused();
   await page.getByLabel('בחרו כיתה').selectOption('5');
   await page.getByLabel('בחרו רמה').selectOption('hard');
   await page.getByLabel('כמה תרגילים?').selectOption('10');
