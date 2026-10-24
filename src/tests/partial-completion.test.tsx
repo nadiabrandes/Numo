@@ -8,6 +8,7 @@ describe('partial worksheet completion', () => {
   it('does not show a score when no answers were entered', () => {
     const { container } = render(<App />);
     fireEvent.click(container.querySelector('.welcome-actions .primary')!);
+    fireEvent.click(container.querySelector('.welcome-card .primary')!);
 
     fireEvent.click(container.querySelector('.submit')!);
 
@@ -19,6 +20,7 @@ describe('partial worksheet completion', () => {
   it('shows the calculated score after reviewing incorrect answers', () => {
     const { container } = render(<App />);
     fireEvent.click(container.querySelector('.welcome-actions .primary')!);
+    fireEvent.click(container.querySelector('.welcome-card .primary')!);
     screen.getAllByRole('textbox').forEach((input) => {
       fireEvent.change(input, { target: { value: '999999' } });
     });

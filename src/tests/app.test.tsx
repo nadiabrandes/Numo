@@ -7,6 +7,7 @@ beforeEach(() => localStorage.clear());
 function startWorksheet() {
   const { container } = render(<App />);
   fireEvent.click(screen.getByRole('button', { name: /בואו נתחיל/ }));
+  fireEvent.click(container.querySelector('.welcome-card .primary')!);
   return container;
 }
 
@@ -24,7 +25,7 @@ describe('NUMO app', () => {
     expect(screen.getByText(/ענית על 1 מתוך 25 תרגילים/)).toBeInTheDocument();
     fireEvent.click(container.querySelector('.submit')!);
     expect(screen.getByRole('heading', { name: 'בדיקת תשובות' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /סיום והצגת ציון/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /בדיקת התקדמות/ })).toBeInTheDocument();
     expect(screen.getAllByRole('textbox')[0]).toHaveAttribute('aria-invalid', 'true');
   });
 });
