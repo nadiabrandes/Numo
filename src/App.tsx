@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Check, ChevronRight, CircleHelp, Home, Share2, Sparkles, Trophy, X } from 'lucide-react';
-import { generateWorksheet, parseAnswer, signFor, validateAnswer, type Difficulty, type MathExercise, type Status, type WorksheetConfig } from './features/math/engine';
+import { generateWorksheet, operandText, parseAnswer, signFor, validateAnswer, type Difficulty, type MathExercise, type Status, type WorksheetConfig } from './features/math/engine';
 import './styles.css';
 
 declare const __APP_VERSION__: string;
@@ -11,16 +11,16 @@ type Saved = { screen: Screen; config: WorksheetConfig; exercises: MathExercise[
 const KEY = 'numo.session.v1';
 const CONFIG_KEY = 'numo.config.v1';
 const initial: WorksheetConfig = { grade: 3, difficulty: 'medium', exerciseCount: 25 };
-const grades = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ז׳', 'ח׳', 'ט׳'];
+const grades = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳'];
 const difficultyText: Record<Difficulty, string> = { easy: 'קל', medium: 'בינוני', hard: 'קשה' };
 
 function getSaved(): Saved | null {
   try {
     const value = JSON.parse(localStorage.getItem(KEY) ?? 'null') as Partial<Saved> | null;
     const config = value?.config;
-    const operations = ['addition', 'subtraction', 'multiplication', 'division'];
+    const operations = ['addition', 'subtraction', 'multiplication', 'division', 'multiStep'];
     const statuses = ['unanswered', 'answered', 'correct', 'incorrect'];
-    if (!config || !Number.isInteger(config.grade) || config.grade! < 1 || config.grade! > 9) return null;
+    if (!config || !Number.isInteger(config.grade) || config.grade! < 1 || config.grade! > 6) return null;
     if (!['easy', 'medium', 'hard'].includes(config.difficulty) || ![10, 15, 20, 25, 50].includes(config.exerciseCount)) return null;
     if (!Array.isArray(value?.exercises) || !['welcome', 'setup', 'worksheet', 'checking', 'complete'].includes(value.screen ?? '')) return null;
     if (value.exercises.length && value.exercises.length !== config.exerciseCount) return null;
@@ -38,7 +38,7 @@ function getSaved(): Saved | null {
 function getConfig(): WorksheetConfig | null {
   try {
     const config = JSON.parse(localStorage.getItem(CONFIG_KEY) ?? 'null') as Partial<WorksheetConfig> | null;
-    if (!config || !Number.isInteger(config.grade) || config.grade! < 1 || config.grade! > 9) return null;
+    if (!config || !Number.isInteger(config.grade) || config.grade! < 1 || config.grade! > 6) return null;
     if (!['easy', 'medium', 'hard'].includes(config.difficulty ?? '')) return null;
     if (![10, 15, 20, 25, 50].includes(config.exerciseCount ?? 0)) return null;
     return config as WorksheetConfig;
@@ -138,7 +138,7 @@ function App() {
         context.fillText(`${index + 1}.`, 812, y + 39);
         context.direction = 'ltr';
         context.textAlign = 'left';
-        context.fillText(`${exercise.operandA} ${signFor(exercise.operation)} ${exercise.operandB} = ${exercise.correctAnswer}`, 130, y + 39);
+        context.fillText(exercise.displayExpression ?? `${operandText(exercise, 'a')} ${signFor(exercise.operation)} ${operandText(exercise, 'b')} = ${exercise.correctAnswer}`, 130, y + 39);
       });
       canvas.toBlob((blob) => blob ? resolve(new File([blob], 'numo-worksheet.png', { type: 'image/png' })) : reject(new Error('PNG export failed')), 'image/png');
     });
@@ -150,7 +150,7 @@ function App() {
       setLive('לא ניתן לפתוח חלון חדש לשמירת PDF');
       return;
     }
-    const rows = saved.exercises.map((exercise, index) => `<tr><td>${index + 1}</td><td dir="ltr">${exercise.operandA} ${signFor(exercise.operation)} ${exercise.operandB} = ${exercise.correctAnswer}</td></tr>`).join('');
+    const rows = saved.exercises.map((exercise, index) => `<tr><td>${index + 1}</td><td dir="ltr">${exercise.displayExpression ?? `${operandText(exercise, 'a')} ${signFor(exercise.operation)} ${operandText(exercise, 'b')} = ${exercise.correctAnswer}`}</td></tr>`).join('');
     printWindow.document.write(`<!doctype html><html lang="he" dir="rtl"><meta charset="utf-8"><title>דף התרגול שלי — NUMO</title><style>body{font-family:Arial,sans-serif;color:#102c68;padding:28px}h1,p{text-align:center}table{border-collapse:separate;border-spacing:0 7px;width:100%}td{padding:12px;background:#f2f7ff;font-size:18px}td:first-child{width:55px;text-align:center;border-radius:0 12px 12px 0}td:last-child{direction:ltr;text-align:left;border-radius:12px 0 0 12px}@media print{tr{break-inside:avoid}}</style><h1>NUMO — חשבון בכיף</h1><p>פתרתי את התרגילים בהצלחה!</p><p>כיתה ${grades[saved.config.grade - 1]} · רמה ${difficultyText[saved.config.difficulty]} · ${new Date(saved.completedAt ?? Date.now()).toLocaleDateString('he-IL')}</p><table>${rows}</table></html>`);
     printWindow.document.close();
     printWindow.focus();
@@ -200,7 +200,7 @@ function App() {
       {saved.screen === 'setup' && <section className="setup">
         <header className="top"><button className="icon-btn" aria-label="חזרה" onClick={() => setSaved((current) => ({ ...current, screen: 'welcome' }))}><ArrowLeft /></button><Logo /></header>
         <h1 className="page-title">בוחרים תרגול</h1>
-        <p className="setup-intro">בחרו כיתה ורמת קושי, ואז נתחיל לפתור!</p>
+        <p className="setup-intro">{draft.grade === 1 ? 'בכיתה א׳ התרגילים מותאמים לרמה: קל עד 10, בינוני עד 15, וקשה עד 20.' : 'בכל כיתה התרגילים מותאמים לנושאים שנלמדים בה. בכל רמה עולים בהדרגה במספרים ובמורכבות.'}</p>
         <div className="welcome-card">
           <label>בחרו כיתה<select value={draft.grade} onChange={(event) => setDraft({ ...draft, grade: Number(event.target.value) })}>{grades.map((grade, index) => <option key={grade} value={index + 1}>{grade}</option>)}</select></label>
           <label>בחרו רמה<select value={draft.difficulty} onChange={(event) => setDraft({ ...draft, difficulty: event.target.value as Difficulty })}>{Object.entries(difficultyText).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
@@ -246,9 +246,9 @@ function ExerciseRow({ exercise, index, checking, onChange }: { exercise: MathEx
   const statusLabel = status === 'correct' ? 'תשובה נכונה' : status === 'incorrect' ? 'תשובה שגויה' : 'לא נענתה';
   return <div className={`exercise-row ${checking ? status : ''}`}>
     <span className="number">{index + 1}</span>
-    <span className="equation" dir="ltr">{exercise.operandA} {signFor(exercise.operation)} {exercise.operandB} =</span>
-    <label className="sr-only" htmlFor={`answer-${exercise.id}`}>תשובה לתרגיל {index + 1}: {exercise.operandA} {signFor(exercise.operation)} {exercise.operandB}</label>
-    <input id={`answer-${exercise.id}`} type="text" inputMode="decimal" autoComplete="off" value={exercise.userAnswer} onChange={(event) => onChange(event.target.value)} disabled={checking && status === 'correct'} aria-invalid={checking && status === 'incorrect'} aria-describedby={checking ? `status-${exercise.id}` : undefined} />
+    <span className="equation" dir="ltr">{exercise.displayExpression ?? `${operandText(exercise, 'a')} ${signFor(exercise.operation)} ${operandText(exercise, 'b')} =`}</span>
+    <label className="sr-only" htmlFor={`answer-${exercise.id}`}>תשובה לתרגיל {index + 1}: {exercise.displayExpression ?? `${operandText(exercise, 'a')} ${signFor(exercise.operation)} ${operandText(exercise, 'b')}`}</label>
+    <input id={`answer-${exercise.id}`} type="text" inputMode={exercise.displayOperandA || exercise.displayOperandB || exercise.displayExpression ? 'text' : 'decimal'} autoComplete="off" value={exercise.userAnswer} onChange={(event) => onChange(event.target.value)} disabled={checking && status === 'correct'} aria-invalid={checking && status === 'incorrect'} aria-describedby={checking ? `status-${exercise.id}` : undefined} />
     {checking && <span id={`status-${exercise.id}`} className="status" aria-label={statusLabel}>{status === 'correct' ? <Check /> : status === 'incorrect' ? <X /> : <CircleHelp />}<span className="sr-only">{statusLabel}</span></span>}
   </div>;
 }

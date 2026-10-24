@@ -7,7 +7,7 @@ NUMO is a local-first Hebrew arithmetic practice app for children. It provides c
 ## Features
 
 - Hebrew RTL interface based on the supplied four-screen design references.
-- Grades 1–9, three difficulty levels, and worksheets of 10, 15, 20, 25, or 50 exercises.
+- Israeli primary school classes א׳–ו׳, class-aware operation and number scopes, three difficulty levels ordered קל → בינוני → קשה, and worksheets of 10, 15, 20, 25, or 50 exercises.
 - Local arithmetic generation, answer validation, correction, and completion summary.
 - Versioned localStorage session recovery and confirmation before replacing saved work.
 - Local PNG worksheet export and Web Share when supported; browser printing is the fallback.
@@ -57,7 +57,7 @@ Playwright browser binaries may need a one-time install: `npx playwright install
 
 ## Mathematics rules
 
-Grade-specific operation and number bounds live in `src/features/math/engine.ts`. Grades 1–2 use addition and subtraction; grades 3–9 include multiplication and exact division. Grades 7–9 can include negative results, while grade 6 and above can include decimals on hard worksheets. Difficulty changes operand bounds. Generation is bounded, avoids duplicate expressions where possible, and safely fills remaining slots. These are configurable product defaults, not a verified full Israeli curriculum. Answers use numeric normalization and a small tolerance; comma decimals are accepted.
+Class-specific practice profiles live in `src/features/math/engine.ts`. Difficulty is defined within the selected class scope. Grade 1 uses addition/subtraction caps of 10 (easy), 15 (medium), and 20 (hard), with no extra range selector. Grade 2 introduces multiplication and exact division with small facts. Later grades increase number size and multiplication/division complexity; Grades 4–6 also receive multi-step expressions, and fraction notation is introduced in Grades 5–6. These app-generated practice profiles are informed by Ministry materials and should be reviewed by educators. Generation respects configured result caps, avoids duplicate expressions where possible, and accepts decimal or fraction answers.
 
 ## Session storage and privacy
 
