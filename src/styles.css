@@ -263,3 +263,104 @@ body{min-height:100svh;background:radial-gradient(ellipse at 50% 15%,#fff 0,#f8f
 .welcome .decor{opacity:.3}
 @media(max-height:740px){.welcome .brand{height:36svh;min-height:240px}.welcome-mascot{width:clamp(100px,25vw,122px);bottom:15%}.welcome-actions{margin-top:clamp(28px,4.5svh,42px)}.welcome-actions .primary{min-height:62px}.welcome-actions .outline{min-height:54px}}
 @media(min-width:600px){.welcome .brand{height:42svh;max-height:440px}.welcome .brand .logo{width:min(56vw,470px)}.welcome-mascot{width:136px;right:12%}.welcome-actions{width:min(88%,520px)}}
+
+/* Keep every app screen inside the device viewport; worksheets paginate. */
+html,body,#root{width:100%;height:100%;overflow:hidden}
+body{min-height:0}
+.shell:not(.work-screen){height:100dvh;min-height:0;overflow:hidden}
+.welcome,.setup,.complete{height:100%;min-height:0;max-height:100%;overflow:hidden}
+.setup{justify-content:flex-start}
+.complete{flex:none}
+.work-screen{height:100dvh;min-height:0;overflow:hidden;display:flex;flex-direction:column;margin:0 auto;padding:calc(6px + env(safe-area-inset-top)) clamp(14px,5vw,28px) calc(8px + env(safe-area-inset-bottom))}
+.work-screen .top{height:44px;min-height:44px;margin:0 0 2px}
+.work-screen .top .logo{width:132px}
+.work-screen .page-title{flex:none;font-size:clamp(24px,5vw,30px);line-height:1.1;margin:3px 0 7px}
+.work-screen .summary{flex:none;min-height:54px;padding:6px;border-radius:16px}
+.work-screen .summary span{font-size:12px;gap:2px}
+.work-screen .summary b{font-size:17px}
+.work-screen .progress-line{flex:none;margin:7px 4px 6px;font-size:13px}
+.work-screen .track{height:8px}
+.work-screen .notice{flex:none;min-height:0;margin:2px 0 6px;padding:5px 10px;border-radius:12px;font-size:14px;line-height:1.25}
+.work-screen .notice .mascot{width:32px;height:32px}
+.work-screen .empty-submission{flex:none;margin:3px 0;padding:6px 8px;font-size:13px}
+.work-screen .exercise-list{flex:1 1 0;min-height:0;overflow:hidden;grid-auto-flow:row;gap:6px}
+.work-screen .exercise-row,.work-screen.checking-screen .exercise-row{min-height:0;height:100%;padding:4px 8px;border-radius:14px;gap:7px;grid-template-columns:36px minmax(0,1fr) minmax(76px,27%)}
+.work-screen .number{width:32px;height:32px;font-size:16px}
+.work-screen .equation{font-size:clamp(16px,4vw,22px)}
+.work-screen .exercise-row input{height:clamp(38px,6svh,50px);min-width:0;padding:4px 8px;font-size:20px;border-radius:12px}
+.work-screen.checking-screen .exercise-row{grid-template-columns:34px minmax(0,1fr) minmax(70px,25%) 28px}
+.work-screen.checking-screen .status{width:26px;height:26px}
+.exercise-pagination{flex:none;min-height:34px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin:5px 0;color:#526b95;font-size:14px;font-weight:700}
+.page-button{min-width:82px;min-height:32px;padding:5px 12px;border:1px solid #cbdcf5;border-radius:999px;background:#fff;color:#164482;font-weight:700}
+.page-button:disabled{opacity:.42;cursor:default}
+.work-screen .worksheet-mascot{display:none}
+.work-screen .submit{position:relative;inset:auto;flex:none;min-height:52px;margin:4px 0 0;padding:8px 16px;font-size:clamp(18px,4.5vw,22px)}
+.complete .date{display:none}
+@media(max-height:640px){
+  .welcome .brand{height:30svh;min-height:0;max-height:200px;margin-bottom:2px}
+  .welcome .brand .logo{width:min(62vw,270px)}
+  .welcome-mascot{width:clamp(76px,20vw,100px)}
+  .welcome h1{font-size:30px;margin-top:2px}
+  .welcome .lead{margin-top:6px;font-size:17px}
+  .welcome-actions{margin-top:16px;gap:8px}
+  .welcome-actions .primary{min-height:52px;font-size:20px}
+  .welcome-actions .outline{min-height:44px;font-size:17px}
+  .welcome small{padding-top:6px;font-size:12px}
+  .setup .top{height:42px;min-height:42px;margin-bottom:4px}
+  .setup .page-title{font-size:26px;margin:4px 0}
+  .setup-intro{font-size:14px;margin:0 0 4px}
+  .setup .welcome-card{margin-top:4px;padding:12px;gap:7px}
+  .welcome-card label{font-size:13px}
+  .welcome-card select{height:42px;margin-top:3px}
+  .welcome-card .primary{min-height:48px;font-size:18px}
+  .complete h1{font-size:32px;margin:2px 0 0}
+  .complete .lead{font-size:16px;margin:2px 0}
+  .completion-mascot{width:120px;max-height:14svh;margin:2px 0 4px}
+  .complete .stats{min-height:82px;margin-bottom:6px;padding:6px}
+  .complete .stats svg{width:25px;height:25px}
+  .complete .stats span{font-size:12px}
+  .complete .stats b{font-size:22px}
+  .complete .congrats-note{min-height:54px;margin:0 0 6px;padding:6px 12px;gap:10px}
+  .complete .congrats-note>svg{width:36px;height:36px}
+  .complete .congrats-note p{font-size:15px;gap:2px}
+  .complete .congrats-note p span{font-size:13px}
+  .complete .completion-continue{min-height:46px;font-size:17px}
+  .complete .completion-home{min-height:42px;margin-top:5px;font-size:15px}
+  .complete .export-options,.complete small{display:none}
+}
+@media(min-width:600px){
+  .work-screen{padding-inline:clamp(28px,6vw,64px)}
+  .work-screen .exercise-row,.work-screen.checking-screen .exercise-row{grid-template-columns:42px minmax(0,1fr) minmax(110px,22%);gap:12px}
+  .work-screen.checking-screen .exercise-row{grid-template-columns:42px minmax(0,1fr) minmax(110px,22%) 32px}
+  .work-screen .number{width:36px;height:36px}
+  .work-screen .exercise-row input{height:clamp(42px,6svh,56px)}
+  .work-screen.checking-screen .status{width:30px;height:30px}
+}
+@media(max-height:740px){
+  .welcome .brand{height:35svh;min-height:0;max-height:280px}
+  .welcome-actions{margin-top:clamp(18px,4svh,34px)}
+  .complete .top{height:46px}
+  .complete h1{font-size:34px;margin:4px 0 0}
+  .complete .lead{font-size:17px;margin:3px 0}
+  .completion-mascot{width:clamp(110px,22vh,160px);max-height:18svh;margin:3px 0 5px}
+  .complete .stats{min-height:100px;margin-bottom:7px;padding:8px}
+  .complete .stats svg{width:30px;height:30px}
+  .complete .stats span{font-size:13px}
+  .complete .stats b{font-size:24px}
+  .complete .congrats-note{min-height:70px;margin:0 0 8px;padding:8px 14px}
+  .complete .congrats-note>svg{width:44px;height:44px}
+  .complete .congrats-note p{font-size:17px}
+  .complete .congrats-note p span{font-size:14px}
+  .complete .completion-continue{min-height:52px;font-size:18px}
+  .complete .completion-home{min-height:46px;margin-top:5px;font-size:16px}
+  .complete .export-options,.complete small{display:none}
+}
+@media(min-width:600px){.shell:not(.work-screen){margin:0 auto;border-radius:0}}
+@media(min-height:741px) and (max-height:900px){
+  .complete .top{height:54px}
+  .complete h1{margin-top:8px}
+  .completion-mascot{width:clamp(140px,34svh,260px);max-height:20svh;margin:6px 0 8px}
+  .complete .stats{min-height:clamp(120px,14svh,150px);margin-bottom:8px;padding:12px}
+  .complete .congrats-note{min-height:clamp(82px,10svh,100px);margin:0 0 10px;padding:10px 16px}
+  .complete .export-options,.complete small{display:none}
+}

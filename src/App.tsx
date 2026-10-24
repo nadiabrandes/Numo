@@ -13,6 +13,7 @@ const CONFIG_KEY = 'numo.config.v1';
 const initial: WorksheetConfig = { grade: 3, difficulty: 'medium', exerciseCount: 25 };
 const grades = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳'];
 const difficultyText: Record<Difficulty, string> = { easy: 'קל', medium: 'בינוני', hard: 'קשה' };
+const exercisesPerPage = (height: number) => height < 600 ? 2 : height < 760 ? 3 : 4;
 
 function getSaved(): Saved | null {
   try {
@@ -64,13 +65,25 @@ function App() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [live, setLive] = useState('');
   const [emptySubmission, setEmptySubmission] = useState(false);
+  const [pageSize, setPageSize] = useState(() => exercisesPerPage(window.innerHeight));
+  const [exercisePage, setExercisePage] = useState(0);
 
   useEffect(() => localStorage.setItem(KEY, JSON.stringify(saved)), [saved]);
   useEffect(() => localStorage.setItem(CONFIG_KEY, JSON.stringify(draft)), [draft]);
+  useEffect(() => {
+    const resize = () => setPageSize(exercisesPerPage(window.innerHeight));
+    window.addEventListener('resize', resize);
+    return () => window.removeEventListener('resize', resize);
+  }, []);
+  useEffect(() => {
+    setExercisePage((page) => Math.min(page, Math.max(0, Math.ceil(saved.exercises.length / pageSize) - 1)));
+  }, [pageSize, saved.exercises.length]);
 
   const answered = useMemo(() => saved.exercises.filter((exercise) => parseAnswer(exercise.userAnswer) !== null).length, [saved.exercises]);
   const correctCount = useMemo(() => saved.exercises.filter((exercise) => exercise.status === 'correct').length, [saved.exercises]);
   const accuracy = saved.exercises.length ? Math.round((correctCount / saved.exercises.length) * 100) : 0;
+  const pageCount = Math.max(1, Math.ceil(saved.exercises.length / pageSize));
+  const visibleExercises = saved.exercises.slice(exercisePage * pageSize, (exercisePage + 1) * pageSize);
   const completionTitle = accuracy === 100 ? 'מושלם!' : accuracy >= 80 ? 'כל הכבוד!' : accuracy >= 50 ? 'עבודה טובה!' : 'סיימת את התרגול!';
   const completionNote = accuracy === 100
     ? { title: 'הישג נהדר!', text: 'פתרת את כל התרגילים נכון.' }
@@ -84,6 +97,7 @@ function App() {
   function start(config = draft) {
     setSaved({ screen: 'worksheet', config, exercises: generateWorksheet(config) });
     setDraft(config);
+    setExercisePage(0);
     setEmptySubmission(false);
     setLive('נוצר דף תרגול חדש');
   }
@@ -111,8 +125,13 @@ function App() {
     setEmptySubmission(false);
     const exercises = saved.exercises.map((exercise) => ({ ...exercise, status: validateAnswer(exercise, exercise.userAnswer) as Status }));
     const allCorrect = exercises.length > 0 && exercises.every((exercise) => exercise.status === 'correct');
-    const finish = allCorrect || saved.screen === 'checking';
+    const allReviewed = exercises.every((exercise) => exercise.status === 'correct' || exercise.status === 'incorrect');
+    const finish = allCorrect || (saved.screen === 'checking' && allReviewed);
     setSaved((current) => ({ ...current, exercises, screen: finish ? 'complete' : 'checking', completedAt: finish ? new Date().toISOString() : undefined }));
+    if (!finish) {
+      const firstUnanswered = exercises.findIndex((exercise) => exercise.status === 'unanswered');
+      if (firstUnanswered >= 0) setExercisePage(Math.floor(firstUnanswered / pageSize));
+    }
     setLive(finish ? 'כל הכבוד!' : 'הבדיקה הסתיימה. אפשר לתקן ולנסות שוב.');
   }
 
@@ -230,10 +249,14 @@ function App() {
         <div className="progress-line"><span>{answered}/{saved.exercises.length}</span><div className="track"><div style={{ width: `${saved.exercises.length ? answered / saved.exercises.length * 100 : 0}%` }} /></div></div>
         <p className="progress-label">ענית על {answered} מתוך {saved.exercises.length} תרגילים</p>
         {emptySubmission && <p className="empty-submission" role="alert">יש לענות על תרגיל אחד לפחות לפני הצגת הציון.</p>}
-        {saved.screen === 'checking' && <div className="notice"><Mascot />יש כמה תרגילים שצריך לתקן. נסו שוב!</div>}
-        <div className="exercise-list">{saved.exercises.map((exercise, index) => <ExerciseRow key={exercise.id} exercise={exercise} index={index} checking={saved.screen === 'checking'} onChange={(value) => update(exercise.id, value)} />)}</div>
-        <div className="worksheet-mascot"><Mascot /></div>
-        <button className="primary submit" onClick={check}><Check /> {saved.screen === 'worksheet' ? 'בדיקת תשובות' : 'סיום והצגת ציון'}</button>
+        {saved.screen === 'checking' && <div className="notice"><Mascot />{saved.exercises.some((exercise) => !exercise.userAnswer.trim()) ? 'עברו בין העמודים וענו על כל התרגילים.' : 'יש תרגילים שצריך לתקן. נסו שוב!'}</div>}
+        <div className="exercise-list" style={{ gridTemplateRows: `repeat(${visibleExercises.length}, minmax(0, 1fr))` }}>{visibleExercises.map((exercise, index) => <ExerciseRow key={exercise.id} exercise={exercise} index={exercisePage * pageSize + index} checking={saved.screen === 'checking'} onChange={(value) => update(exercise.id, value)} />)}</div>
+        {pageCount > 1 && <nav className="exercise-pagination" aria-label="מעבר בין עמודי התרגול">
+          <button type="button" className="page-button" disabled={exercisePage === 0} onClick={() => setExercisePage((page) => page - 1)}>הקודם</button>
+          <span>עמוד {exercisePage + 1} מתוך {pageCount}</span>
+          <button type="button" className="page-button" disabled={exercisePage === pageCount - 1} onClick={() => setExercisePage((page) => page + 1)}>הבא</button>
+        </nav>}
+        <button className="primary submit" onClick={check}><Check /> {saved.screen === 'worksheet' ? 'בדיקת תשובות' : saved.exercises.some((exercise) => !exercise.userAnswer.trim()) ? 'בדיקת התקדמות' : 'סיום והצגת ציון'}</button>
       </>}
 
       {saved.screen === 'complete' && <section className="complete">
