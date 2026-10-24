@@ -244,7 +244,7 @@ function App() {
         <div className="stats"><div><Sparkles /><span>תרגילים</span><b>{saved.exercises.length}</b></div><div><Check /><span>נכונים</span><b>{correctCount}</b></div><div><Trophy /><span>דיוק</span><b>{accuracy}%</b></div></div>
         <p className="date">הושלם בתאריך {new Date(saved.completedAt ?? Date.now()).toLocaleDateString('he-IL')}</p>
         <div className="congrats-note"><Trophy aria-hidden="true" /><p><b>{completionNote.title}</b><span>{completionNote.text}</span></p></div>
-        <button className="primary completion-continue" onClick={() => { setDraft(saved.config); setSaved((current) => ({ ...current, screen: 'setup' })); }}>תרגול חדש — בחירת כיתה ורמה <ChevronRight /></button>
+        <button className="primary completion-continue" onClick={() => { setDraft(saved.config); setSaved((current) => ({ ...current, screen: 'setup' })); }}>תרגול חדש <ChevronRight /></button>
         <button className="outline completion-home" onClick={goHome}><Home /> חזרה למסך הבית</button>
         <details className="export-options"><summary>שיתוף והורדת דף התרגול</summary><div><button className="text-btn" onClick={share}><Share2 /> שתף להורה</button><button className="text-btn" onClick={printWorksheet}>הורדת PDF</button></div></details>
         <small>גרסה {__APP_VERSION__}</small>
