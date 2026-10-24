@@ -371,5 +371,15 @@ body,#root{min-height:100svh}
 .welcome-actions .outline{border-radius:22px}
 .welcome::before{content:"✦";top:43%;left:4%;font-size:34px;color:#ffc638;opacity:.82}
 .welcome::after{content:"✦";top:55%;left:auto;right:4%;font-size:26px;color:#a477f6;opacity:.82}
+.welcome{padding:clamp(12px,2svh,20px) 0 calc(12px + env(safe-area-inset-bottom));}
+.welcome .brand{height:clamp(200px,32svh,280px);min-height:0;max-height:none;margin-bottom:4px}
+.welcome-actions{gap:20px;margin-top:clamp(24px,4svh,46px)}
+.welcome-actions .primary{min-height:clamp(56px,7.5svh,68px);padding:10px 18px;font-size:clamp(20px,5vw,25px);box-shadow:0 3px 0 #075bc9,0 7px 12px #0874f522}
+.welcome-actions .primary span{font-size:28px;line-height:1}
+.welcome-actions .primary:active{box-shadow:0 2px 0 #075bc9,0 5px 8px #0874f51c}
+.welcome-actions .outline{min-height:56px;padding:10px 18px;font-size:clamp(17px,4.5vw,20px)}
+@media(min-width:600px){.welcome .brand{height:clamp(320px,42svh,440px)}}
+@media(max-height:640px){.welcome .brand{height:clamp(170px,30svh,200px)}.welcome-actions{gap:14px;margin-top:20px}.welcome-actions .primary,.welcome-actions .outline{min-height:50px}}
+@media(max-height:440px){.welcome{padding-block:6px}.welcome .brand{height:clamp(92px,24svh,110px);margin-bottom:0}.welcome .brand .logo{width:min(55vw,180px)}.welcome .brand .welcome-mascot{width:68px}.welcome h1{font-size:28px}.welcome .lead{margin-top:4px;font-size:15px;line-height:1.25}.welcome-actions{gap:14px;margin-top:10px}.welcome-actions .primary,.welcome-actions .outline{min-height:44px;padding:6px 14px;font-size:18px}.welcome small{display:none}}
 @keyframes mascot-bob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-8px) rotate(2deg)}}
 @media(prefers-reduced-motion:reduce){.welcome .brand .welcome-mascot{animation:none}}
