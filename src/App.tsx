@@ -56,7 +56,10 @@ function Logo() {
 }
 
 function App() {
-  const [saved, setSaved] = useState<Saved>(() => getSaved() ?? { screen: 'welcome', config: initial, exercises: [] });
+  const [saved, setSaved] = useState<Saved>(() => {
+    const restored = getSaved();
+    return restored ? { ...restored, screen: 'welcome' } : { screen: 'welcome', config: initial, exercises: [] };
+  });
   const [draft, setDraft] = useState<WorksheetConfig>(() => getConfig() ?? saved.config ?? initial);
   const [showConfirm, setShowConfirm] = useState(false);
   const [live, setLive] = useState('');
@@ -68,6 +71,14 @@ function App() {
   const answered = useMemo(() => saved.exercises.filter((exercise) => parseAnswer(exercise.userAnswer) !== null).length, [saved.exercises]);
   const correctCount = useMemo(() => saved.exercises.filter((exercise) => exercise.status === 'correct').length, [saved.exercises]);
   const accuracy = saved.exercises.length ? Math.round((correctCount / saved.exercises.length) * 100) : 0;
+  const completionTitle = accuracy === 100 ? 'מושלם!' : accuracy >= 80 ? 'כל הכבוד!' : accuracy >= 50 ? 'עבודה טובה!' : 'סיימת את התרגול!';
+  const completionNote = accuracy === 100
+    ? { title: 'הישג נהדר!', text: 'פתרת את כל התרגילים נכון.' }
+    : accuracy >= 80
+      ? { title: 'עבודה מצוינת!', text: 'רוב התשובות נכונות. ממשיכים כך!' }
+      : accuracy >= 50
+        ? { title: 'התקדמות יפה!', text: 'עברו על התרגילים שסומנו ונסו להשתפר.' }
+        : { title: 'כל הכבוד על המאמץ!', text: 'אפשר לעבור על התרגילים ולתרגל שוב.' };
   const isWork = saved.screen === 'worksheet' || saved.screen === 'checking';
 
   function start(config = draft) {
@@ -75,6 +86,11 @@ function App() {
     setDraft(config);
     setEmptySubmission(false);
     setLive('נוצר דף תרגול חדש');
+  }
+
+  function beginSelectedPractice() {
+    if (saved.exercises.length && !saved.completedAt) setShowConfirm(true);
+    else start(draft);
   }
 
   function update(id: string, value: string) {
@@ -189,10 +205,8 @@ function App() {
         <h1>חשבון בכיף</h1>
         <p className="lead">מתרגלים, מתקדמים ומצליחים</p>
         <div className="welcome-actions">
-          <button className="primary" onClick={() => saved.exercises.some((exercise) => exercise.status !== 'correct') ? setShowConfirm(true) : start()}>בואו נתחיל <span>›</span></button>
-          {saved.exercises.some((exercise) => exercise.status !== 'correct')
-            ? <button className="outline" onClick={() => setSaved((current) => ({ ...current, screen: current.exercises.some((exercise) => exercise.status === 'incorrect' || exercise.status === 'correct') ? 'checking' : 'worksheet' }))}>המשך תרגול שמור</button>
-            : <button className="outline" onClick={() => setSaved((current) => ({ ...current, screen: 'setup' }))}>התאמת תרגול</button>}
+          <button className="primary" onClick={() => setSaved((current) => ({ ...current, screen: 'setup' }))}>בחירת כיתה ורמה <span>›</span></button>
+          {saved.exercises.some((exercise) => exercise.status !== 'correct') && <button className="outline" onClick={() => setSaved((current) => ({ ...current, screen: current.exercises.some((exercise) => exercise.status === 'incorrect' || exercise.status === 'correct') ? 'checking' : 'worksheet' }))}>המשך תרגול שמור</button>}
         </div>
         <small>גרסה {__APP_VERSION__}</small>
       </section>}
@@ -205,7 +219,7 @@ function App() {
           <label>בחרו כיתה<select value={draft.grade} onChange={(event) => setDraft({ ...draft, grade: Number(event.target.value) })}>{grades.map((grade, index) => <option key={grade} value={index + 1}>{grade}</option>)}</select></label>
           <label>בחרו רמה<select value={draft.difficulty} onChange={(event) => setDraft({ ...draft, difficulty: event.target.value as Difficulty })}>{Object.entries(difficultyText).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
           <label>כמה תרגילים?<select value={draft.exerciseCount} onChange={(event) => setDraft({ ...draft, exerciseCount: Number(event.target.value) })}>{[10, 15, 20, 25, 50].map((count) => <option key={count} value={count}>{count}</option>)}</select></label>
-          <button className="primary" onClick={() => start()}>התחילו לתרגל <span>›</span></button>
+          <button className="primary" onClick={beginSelectedPractice}>התחילו לתרגל <span>›</span></button>
         </div>
       </section>}
 
@@ -224,19 +238,19 @@ function App() {
 
       {saved.screen === 'complete' && <section className="complete">
         <header className="top"><button className="icon-btn" aria-label="חזרה למסך הבית" onClick={goHome}><ArrowLeft /></button><Logo /></header>
-        <h1>כל הכבוד!</h1>
-        <p className="lead">{accuracy === 100 ? 'פתרת את כל התרגילים בהצלחה!' : `ענית נכון על ${correctCount} מתוך ${saved.exercises.length} תרגילים.`}</p>
+        <h1>{completionTitle}</h1>
+        <p className="lead">ענית נכון על {correctCount} מתוך {saved.exercises.length} תרגילים.</p>
         <img className="completion-mascot" src={`${import.meta.env.BASE_URL}assets/numo-mascot.svg`} alt="Numo חוגג עם שרביט קסמים" />
         <div className="stats"><div><Sparkles /><span>תרגילים</span><b>{saved.exercises.length}</b></div><div><Check /><span>נכונים</span><b>{correctCount}</b></div><div><Trophy /><span>דיוק</span><b>{accuracy}%</b></div></div>
         <p className="date">הושלם בתאריך {new Date(saved.completedAt ?? Date.now()).toLocaleDateString('he-IL')}</p>
-        <div className="congrats-note"><Trophy aria-hidden="true" /><p><b>{accuracy === 100 ? 'כל הכבוד!' : 'התקדמות נהדרת!'}</b><span>{accuracy === 100 ? 'את/ה משתפר/ת ממש!' : 'כל תרגיל מקרב אותך להצלחה!'}</span></p></div>
-        <button className="primary completion-continue" onClick={() => start(saved.config)}>המשך לתרגילים חדשים <ChevronRight /></button>
+        <div className="congrats-note"><Trophy aria-hidden="true" /><p><b>{completionNote.title}</b><span>{completionNote.text}</span></p></div>
+        <button className="primary completion-continue" onClick={() => { setDraft(saved.config); setSaved((current) => ({ ...current, screen: 'setup' })); }}>תרגול חדש — בחירת כיתה ורמה <ChevronRight /></button>
         <button className="outline completion-home" onClick={goHome}><Home /> חזרה למסך הבית</button>
         <details className="export-options"><summary>שיתוף והורדת דף התרגול</summary><div><button className="text-btn" onClick={share}><Share2 /> שתף להורה</button><button className="text-btn" onClick={printWorksheet}>הורדת PDF</button></div></details>
         <small>גרסה {__APP_VERSION__}</small>
       </section>}
 
-      {showConfirm && <div className="modal-backdrop" role="presentation"><div className="modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title"><h2 id="confirm-title">להתחיל תרגול חדש?</h2><p>ההתקדמות הנוכחית תימחק.</p><div><button className="outline" onClick={() => setShowConfirm(false)}>ביטול</button><button className="primary" onClick={() => { setShowConfirm(false); setSaved({ screen: 'setup', config: draft, exercises: [] }); }}>תרגול חדש</button></div></div></div>}
+      {showConfirm && <div className="modal-backdrop" role="presentation"><div className="modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title"><h2 id="confirm-title">להתחיל תרגול חדש?</h2><p>ההתקדמות הנוכחית תימחק.</p><div><button className="outline" onClick={() => setShowConfirm(false)}>ביטול</button><button className="primary" onClick={() => { setShowConfirm(false); start(draft); }}>תרגול חדש</button></div></div></div>}
     </main>
   );
 }
