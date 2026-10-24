@@ -205,7 +205,7 @@ function App() {
         <h1>חשבון בכיף</h1>
         <p className="lead">מתרגלים, מתקדמים ומצליחים</p>
         <div className="welcome-actions">
-          <button className="primary" onClick={() => setSaved((current) => ({ ...current, screen: 'setup' }))}>בחירת כיתה ורמה <span>›</span></button>
+          <button className="primary" onClick={() => setSaved((current) => ({ ...current, screen: 'setup' }))}>בואו נתחיל <span>›</span></button>
           {saved.exercises.some((exercise) => exercise.status !== 'correct') && <button className="outline" onClick={() => setSaved((current) => ({ ...current, screen: current.exercises.some((exercise) => exercise.status === 'incorrect' || exercise.status === 'correct') ? 'checking' : 'worksheet' }))}>המשך תרגול שמור</button>}
         </div>
         <small>גרסה {__APP_VERSION__}</small>
