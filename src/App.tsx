@@ -202,8 +202,8 @@ function App() {
 
       {saved.screen === 'welcome' && <section className="welcome">
         <div className="brand"><img className="welcome-mascot" src={`${import.meta.env.BASE_URL}assets/numo-mascot.svg`} alt="Numo מניף שרביט קסמים" /><Logo /></div>
-        <h1>חשבון בכיף</h1>
-        <p className="lead">מתרגלים, מתקדמים ומצליחים</p>
+        <h1>היי, אלופי החשבון!</h1>
+        <p className="lead">בואו לפתור, לגלות וליהנות מכל תרגיל!</p>
         <div className="welcome-actions">
           <button className="primary" onClick={() => setSaved((current) => ({ ...current, screen: 'setup' }))}>בואו נתחיל <span>›</span></button>
           {saved.exercises.some((exercise) => exercise.status !== 'correct') && <button className="outline" onClick={() => setSaved((current) => ({ ...current, screen: current.exercises.some((exercise) => exercise.status === 'incorrect' || exercise.status === 'correct') ? 'checking' : 'worksheet' }))}>המשך תרגול שמור</button>}

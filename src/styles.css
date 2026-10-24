@@ -361,3 +361,13 @@ body,#root{min-height:100svh}
   .complete .congrats-note{min-height:clamp(82px,10svh,100px);margin:0 0 10px;padding:10px 16px}
   .complete .export-options,.complete small{display:none}
 }
+
+/* Give the welcome screen a warmer, more playful first impression. */
+.welcome h1{color:#164482;font-weight:900;text-wrap:balance;text-shadow:0 2px 0 #fff}
+.welcome .lead{max-width:24ch;line-height:1.45;color:#526789}
+.welcome .brand .welcome-mascot{animation:mascot-bob 2.8s ease-in-out infinite;filter:drop-shadow(0 12px 12px #173e7024)}
+.welcome-actions .primary{border-radius:26px;box-shadow:0 10px 0 #075bc9,0 16px 28px #0874f538;transition:transform .16s ease,box-shadow .16s ease}
+.welcome-actions .primary:active{transform:translateY(4px);box-shadow:0 6px 0 #075bc9,0 10px 18px #0874f52b}
+.welcome-actions .outline{border-radius:22px}
+@keyframes mascot-bob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-8px) rotate(2deg)}}
+@media(prefers-reduced-motion:reduce){.welcome .brand .welcome-mascot{animation:none}}
