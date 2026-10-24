@@ -15,7 +15,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
       includeAssets: ['icons/numo.svg'],
       manifest: {
         name: 'NUMO — חשבון בכיף',
