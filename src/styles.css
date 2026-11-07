@@ -330,7 +330,7 @@ body,#root{min-height:100svh}
   .complete .stats span{font-size:12px}
   .complete .stats b{font-size:22px}
   .complete .congrats-note{min-height:54px;margin:0 0 6px;padding:6px 12px;gap:10px}
-  
+
   .complete .congrats-note p{font-size:15px;gap:2px}
   .complete .congrats-note p span{font-size:13px}
   .complete .completion-continue{min-height:46px;font-size:17px}
@@ -357,7 +357,7 @@ body,#root{min-height:100svh}
   .complete .stats span{font-size:13px}
   .complete .stats b{font-size:24px}
   .complete .congrats-note{min-height:70px;margin:0 0 8px;padding:8px 14px}
-  
+
   .complete .congrats-note p{font-size:17px}
   .complete .congrats-note p span{font-size:14px}
   .complete .completion-continue{min-height:52px;font-size:18px}
