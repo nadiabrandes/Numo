@@ -198,15 +198,12 @@ function App() {
     }
 
     const share = (navigator as unknown as { share?: (data: ShareData) => Promise<void> }).share;
-    const canShareFile = (() => {
-      try { return Boolean(share && navigator.canShare?.({ files: [file] })); }
-      catch { return false; }
-    })();
-    if (canShareFile) {
+    if (share) {
       // Share before opening any window so the browser keeps the user's click
-      // activation and can pass the image to WhatsApp's share target.
+      // activation. Try sending the image file directly: some browsers report
+      // canShare(files) incorrectly even though their share sheet accepts it.
       try {
-        await share!({ title: t.shareTitle, text: t.shareText, files: [file] });
+        await share({ title: t.shareTitle, text: t.shareText, files: [file] });
         return;
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') return;
