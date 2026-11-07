@@ -189,31 +189,35 @@ function App() {
   }
 
   async function sendAnswers() {
-    const whatsAppTab = window.open('about:blank', '_blank');
+    let file: File;
     try {
-      const file = exportCanvas();
-      if (navigator.canShare?.({ files: [file] }) && navigator.share) {
-        // Call share before yielding to an async image export so the browser's
-        // user activation is still valid (required by Web Share).
-        try {
-          await navigator.share({ title: t.shareTitle, text: t.shareText, files: [file] });
-          whatsAppTab?.close();
-          return;
-        } catch (error) {
-          if (error instanceof Error && error.name === 'AbortError') {
-            whatsAppTab?.close();
-            return;
-          }
-          // If the native share sheet is unavailable, continue with the
-          // downloadable image and WhatsApp message link.
-        }
-      }
-      downloadAndOpenWhatsApp(file, whatsAppTab);
+      file = exportCanvas();
     } catch (error) {
-      whatsAppTab?.close();
-      if (error instanceof Error && error.name === 'AbortError') return;
       setLive(t.shareFailed);
+      return;
     }
+
+    let canShareFile = false;
+    const share = (navigator as unknown as { share?: (data: ShareData) => Promise<void> }).share;
+    try {
+      canShareFile = Boolean(share && navigator.canShare?.({ files: [file] }));
+    } catch {
+      canShareFile = false;
+    }
+    if (canShareFile) {
+      // Share before opening any window so the browser keeps the user's click
+      // activation and can pass the image to WhatsApp's share target.
+      try {
+        await share!({ title: t.shareTitle, text: t.shareText, files: [file] });
+        return;
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') return;
+        // If the native share sheet is unavailable, use the WhatsApp fallback.
+      }
+    }
+
+    const whatsAppTab = window.open('about:blank', '_blank');
+    downloadAndOpenWhatsApp(file, whatsAppTab);
   }
 
   function downloadAndOpenWhatsApp(file: File, whatsAppTab: Window | null) {
