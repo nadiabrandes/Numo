@@ -143,15 +143,14 @@ function App() {
     setSaved((current) => ({ ...current, screen: 'welcome' }));
   }
 
-  function exportCanvas(): Promise<File> {
-    return new Promise((resolve, reject) => {
+  function exportCanvas(): File {
       const canvas = document.createElement('canvas');
       const rows = saved.exercises.length;
       const scale = 2;
       canvas.width = 900 * scale;
       canvas.height = (430 + rows * 96) * scale;
       const context = canvas.getContext('2d');
-      if (!context) return reject(new Error('Canvas unavailable'));
+      if (!context) throw new Error('Canvas unavailable');
       context.scale(scale, scale);
       context.fillStyle = '#fff';
       context.fillRect(0, 0, 900, 430 + rows * 96);
@@ -182,31 +181,48 @@ function App() {
         context.textAlign = direction === 'rtl' ? 'right' : 'left';
         context.fillText(`${t.answer}: ${exercise.userAnswer || '—'}   ·   ${t.correctAnswer}: ${exercise.correctAnswer}`, direction === 'rtl' ? 846 : 130, y + 64);
       });
-      canvas.toBlob((blob) => blob ? resolve(new File([blob], 'numo-worksheet.png', { type: 'image/png' })) : reject(new Error('PNG export failed')), 'image/png');
-    });
+      const data = canvas.toDataURL('image/png');
+      const image = atob(data.split(',')[1]);
+      const bytes = Uint8Array.from(image, (character) => character.charCodeAt(0));
+      return new File([bytes], 'numo-worksheet.png', { type: 'image/png' });
   }
 
   async function sendAnswers() {
     const whatsAppTab = window.open('about:blank', '_blank');
     try {
-      const file = await exportCanvas();
+      const file = exportCanvas();
       if (navigator.canShare?.({ files: [file] }) && navigator.share) {
-        whatsAppTab?.close();
-        await navigator.share({ title: t.shareTitle, text: t.shareText, files: [file] });
-        return;
+        // Call share before yielding to an async image export so the browser's
+        // user activation is still valid (required by Web Share).
+        try {
+          await navigator.share({ title: t.shareTitle, text: t.shareText, files: [file] });
+          whatsAppTab?.close();
+          return;
+        } catch (error) {
+          if (error instanceof Error && error.name === 'AbortError') {
+            whatsAppTab?.close();
+            return;
+          }
+          // If the native share sheet is unavailable, continue with the
+          // downloadable image and WhatsApp message link.
+        }
       }
-      const url = URL.createObjectURL(file);
-      const link = document.createElement('a');
-      link.href = url; link.download = file.name; link.click();
-      const message = encodeURIComponent(t.whatsappText);
-      if (whatsAppTab) whatsAppTab.location.href = `https://wa.me/?text=${message}`;
-      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-      setLive(t.imageSaved);
+      downloadAndOpenWhatsApp(file, whatsAppTab);
     } catch (error) {
       whatsAppTab?.close();
       if (error instanceof Error && error.name === 'AbortError') return;
       setLive(t.shareFailed);
     }
+  }
+
+  function downloadAndOpenWhatsApp(file: File, whatsAppTab: Window | null) {
+    const url = URL.createObjectURL(file);
+    const link = document.createElement('a');
+    link.href = url; link.download = file.name; link.click();
+    const message = encodeURIComponent(t.whatsappText);
+    if (whatsAppTab) whatsAppTab.location.href = `https://wa.me/?text=${message}`;
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setLive(t.imageSaved);
   }
 
   const languagePicker = <LanguagePicker language={language} onChange={setLanguage} />;
