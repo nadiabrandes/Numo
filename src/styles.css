@@ -233,7 +233,7 @@ body{min-height:100svh;background:radial-gradient(ellipse at 50% 15%,#fff 0,#f8f
 .complete .stats span{font-size:clamp(14px,3.7vw,20px);color:#173d7c}
 .complete .stats b{font-size:clamp(27px,6vw,36px);line-height:1.1}
 .complete .congrats-note{display:flex;align-items:center;justify-content:center;gap:24px;width:100%;min-height:112px;margin:0 0 18px;padding:16px 22px;border-radius:30px;background:linear-gradient(110deg,#edf5ff,#e9f3ff)}
-.complete .congrats-note>svg{width:74px;height:74px;flex:none;color:#ffbb22;fill:#ffc83d;stroke:#ffae16;stroke-width:1.8;filter:drop-shadow(0 5px 3px #e99c3433)}
+
 .complete .congrats-note p{gap:5px;font-size:clamp(19px,4.5vw,25px);text-align:right}
 .complete .congrats-note p span{font-size:clamp(16px,4vw,22px);color:#5b7193}
 .complete .completion-continue,.complete .completion-home{width:100%;max-width:none;margin:0}
@@ -259,7 +259,7 @@ body{min-height:100svh;background:radial-gradient(ellipse at 50% 15%,#fff 0,#f8f
 .complete .export-options .text-btn{width:auto;min-height:40px;margin:0;padding:6px 12px;font-size:14px}
 .complete small{margin-top:auto;padding-top:8px;color:#50617e;font-size:14px}
 .complete::before{top:39%;left:2%;right:2%;font-size:clamp(16px,4vw,24px);letter-spacing:clamp(4px,2vw,12px)}
-@media(max-height:740px){.complete{min-height:calc(100svh - 56px)}.complete .top{height:52px}.complete h1{margin-top:6px;font-size:38px}.complete .lead{font-size:18px}.completion-mascot{width:clamp(180px,44vw,240px);max-height:22svh;margin:4px 0 8px}.complete .stats{min-height:130px;padding-block:12px}.complete .stats svg{width:34px;height:34px}.complete .congrats-note{min-height:82px;margin-bottom:10px}.complete .congrats-note>svg{width:54px;height:54px}.complete .completion-continue{min-height:60px}.complete .completion-home{min-height:52px}}
+@media(max-height:740px){.complete{min-height:calc(100svh - 56px)}.complete .top{height:52px}.complete h1{margin-top:6px;font-size:38px}.complete .lead{font-size:18px}.completion-mascot{width:clamp(180px,44vw,240px);max-height:22svh;margin:4px 0 8px}.complete .stats{min-height:130px;padding-block:12px}.complete .stats svg{width:34px;height:34px}.complete .congrats-note{min-height:82px;margin-bottom:10px}.complete .completion-continue{min-height:60px}.complete .completion-home{min-height:52px}}
 @media(min-width:600px){.complete{width:min(100%,720px)}.completion-mascot{width:min(36vw,330px);max-height:30svh}}
 
 /* Welcome screen spacing and hero artwork tuned to the supplied phone design. */
@@ -330,7 +330,7 @@ body,#root{min-height:100svh}
   .complete .stats span{font-size:12px}
   .complete .stats b{font-size:22px}
   .complete .congrats-note{min-height:54px;margin:0 0 6px;padding:6px 12px;gap:10px}
-  .complete .congrats-note>svg{width:36px;height:36px}
+  
   .complete .congrats-note p{font-size:15px;gap:2px}
   .complete .congrats-note p span{font-size:13px}
   .complete .completion-continue{min-height:46px;font-size:17px}
@@ -357,7 +357,7 @@ body,#root{min-height:100svh}
   .complete .stats span{font-size:13px}
   .complete .stats b{font-size:24px}
   .complete .congrats-note{min-height:70px;margin:0 0 8px;padding:8px 14px}
-  .complete .congrats-note>svg{width:44px;height:44px}
+  
   .complete .congrats-note p{font-size:17px}
   .complete .congrats-note p span{font-size:14px}
   .complete .completion-continue{min-height:52px;font-size:18px}
@@ -413,7 +413,7 @@ body,#root{min-height:100svh}
 .complete .stats span{font-size:clamp(15px,3vw,30px)}
 .complete .stats b{font-size:clamp(28px,5.5vw,58px);line-height:1.1}
 .complete .congrats-note{display:flex;align-items:center;justify-content:center;gap:clamp(18px,5vw,56px);width:100%;min-height:clamp(96px,16vw,164px);margin:0;padding:clamp(12px,2.5vw,28px);border-radius:clamp(24px,4vw,40px);background:linear-gradient(110deg,#edf6ff,#e3f1ff)}
-.complete .congrats-note>svg{width:clamp(52px,9vw,96px);height:clamp(52px,9vw,96px)}
+
 .complete .congrats-note p{display:grid;gap:clamp(4px,1vw,10px);margin:0;font-size:clamp(21px,4.5vw,42px);text-align:center}
 .complete .congrats-note p span{font-size:clamp(16px,3.5vw,30px)}
 .complete .completion-continue,.complete .completion-share{width:100%;max-width:none;min-height:clamp(62px,13.5vw,138px);margin:0;padding:12px 24px;border-radius:clamp(24px,4.5vw,44px);font-size:clamp(21px,4.8vw,46px);font-weight:800}

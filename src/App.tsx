@@ -260,7 +260,7 @@ function App() {
           <img className="completion-mascot" src={`${import.meta.env.BASE_URL}assets/numo-mascot.svg`} alt={t.mascotCelebrating} />
           <h1>{completionTitle}</h1>
           <div className="stats"><div><Sparkles /><span>{t.exercises}</span><b>{saved.exercises.length}</b></div><div><Check /><span>{t.correct}</span><b>{correctCount}</b></div><div><Trophy /><span>{t.accuracy}</span><b>{accuracy}%</b></div></div>
-          <div className="congrats-note"><Trophy aria-hidden="true" /><p><b>{completionNote.title}</b><span>{completionNote.text}</span></p></div>
+          <div className="congrats-note"><p><b>{completionNote.title}</b><span>{completionNote.text}</span></p></div>
         </div>
         <button className="primary completion-continue" onClick={() => { setDraft(saved.config); setSaved((current) => ({ ...current, screen: 'setup' })); }}>{t.newPractice} {direction === 'rtl' ? <ChevronLeft /> : <ChevronRight />}</button>
         <button className="outline completion-share" onClick={sendAnswers}><Share2 /> {t.shareResults}</button>
