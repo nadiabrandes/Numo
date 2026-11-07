@@ -30,6 +30,7 @@ describe('partial worksheet completion', () => {
     fireEvent.click(container.querySelector('.submit')!);
 
     expect(screen.getByText('0%')).toBeInTheDocument();
-    expect(screen.getByText('ענית נכון על 0 מתוך 25 תרגילים.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'סיימת את התרגול!' })).toBeInTheDocument();
+    expect(container.querySelector('.stats')).toHaveTextContent('תרגילים25נכונים0דיוק0%');
   });
 });
