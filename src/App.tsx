@@ -198,31 +198,18 @@ function App() {
     }
 
     const share = (navigator as unknown as { share?: (data: ShareData) => Promise<void> }).share;
-    if (share) {
-      // Share before opening any window so the browser keeps the user's click
-      // activation. Try sending the image file directly: some browsers report
-      // canShare(files) incorrectly even though their share sheet accepts it.
-      try {
-        await share({ title: t.shareTitle, text: t.shareText, files: [file] });
-        return;
-      } catch (error) {
-        if (error instanceof Error && error.name === 'AbortError') return;
-        // If the native share sheet is unavailable, use the WhatsApp fallback.
-      }
+    if (!share) {
+      setLive(t.shareFailed);
+      return;
     }
-
-    const whatsAppTab = window.open('about:blank', '_blank');
-    downloadAndOpenWhatsApp(file, whatsAppTab);
-  }
-
-  function downloadAndOpenWhatsApp(file: File, whatsAppTab: Window | null) {
-    const url = URL.createObjectURL(file);
-    const link = document.createElement('a');
-    link.href = url; link.download = file.name; link.click();
-    const message = encodeURIComponent(t.whatsappText);
-    if (whatsAppTab) whatsAppTab.location.href = `https://wa.me/?text=${message}`;
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-    setLive(t.imageSaved);
+    // Pass the image file directly to the system share sheet. WhatsApp will
+    // receive it as an attachment when selected as the share target.
+    try {
+      await share({ title: t.shareTitle, text: t.shareText, files: [file] });
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return;
+      setLive(t.shareFailed);
+    }
   }
 
   const languagePicker = <LanguagePicker language={language} onChange={setLanguage} />;
