@@ -192,18 +192,16 @@ function App() {
     let file: File;
     try {
       file = exportCanvas();
-    } catch (error) {
+    } catch {
       setLive(t.shareFailed);
       return;
     }
 
-    let canShareFile = false;
     const share = (navigator as unknown as { share?: (data: ShareData) => Promise<void> }).share;
-    try {
-      canShareFile = Boolean(share && navigator.canShare?.({ files: [file] }));
-    } catch {
-      canShareFile = false;
-    }
+    const canShareFile = (() => {
+      try { return Boolean(share && navigator.canShare?.({ files: [file] })); }
+      catch { return false; }
+    })();
     if (canShareFile) {
       // Share before opening any window so the browser keeps the user's click
       // activation and can pass the image to WhatsApp's share target.
