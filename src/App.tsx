@@ -14,6 +14,7 @@ const CONFIG_KEY = 'numo.config.v1';
 const LANGUAGE_KEY = 'numo.language.v1';
 const initial: WorksheetConfig = { grade: 3, difficulty: 'medium', exerciseCount: 25 };
 const format = (text: string, values: Record<string, string | number>) => text.replace(/\{(\w+)\}/g, (_match, key: string) => String(values[key] ?? ''));
+const normalizeExerciseCount = (count: number) => count === 10 || count === 25 || count === 50 ? count : count < 18 ? 10 : 25;
 
 function getLanguage(): Language {
   try {
@@ -49,7 +50,7 @@ function getConfig(): WorksheetConfig | null {
     if (!config || !Number.isInteger(config.grade) || config.grade! < 1 || config.grade! > 6) return null;
     if (!['easy', 'medium', 'hard'].includes(config.difficulty ?? '')) return null;
     if (![10, 15, 20, 25, 50].includes(config.exerciseCount ?? 0)) return null;
-    return config as WorksheetConfig;
+    return { ...config, exerciseCount: normalizeExerciseCount(config.exerciseCount!) } as WorksheetConfig;
   } catch {
     return null;
   }
@@ -73,7 +74,7 @@ function App() {
     const restored = getSaved();
     return restored ? { ...restored, screen: 'welcome' } : { screen: 'welcome', config: initial, exercises: [] };
   });
-  const [draft, setDraft] = useState<WorksheetConfig>(() => getConfig() ?? saved.config ?? initial);
+  const [draft, setDraft] = useState<WorksheetConfig>(() => getConfig() ?? (saved.config ? { ...saved.config, exerciseCount: normalizeExerciseCount(saved.config.exerciseCount) } : initial));
   const [live, setLive] = useState('');
   const [emptySubmission, setEmptySubmission] = useState(false);
   const t = translations[language];
@@ -139,7 +140,7 @@ function App() {
   }
 
   function goHome() {
-    setDraft(saved.config);
+    setDraft({ ...saved.config, exerciseCount: normalizeExerciseCount(saved.config.exerciseCount) });
     setSaved((current) => ({ ...current, screen: 'welcome' }));
   }
 
@@ -253,7 +254,7 @@ function App() {
         <div className="welcome-card">
           <label>{t.gradeLabel}<select value={draft.grade} onChange={(event) => setDraft({ ...draft, grade: Number(event.target.value) })}>{grades.map((grade, index) => <option key={grade} value={index + 1}>{language === 'he' ? grade : `${t.gradeWord} ${grade}`}</option>)}</select></label>
           <label>{t.difficultyLabel}<select value={draft.difficulty} onChange={(event) => setDraft({ ...draft, difficulty: event.target.value as Difficulty })}>{Object.entries(difficultyText).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-          <label>{t.countLabel}<select value={draft.exerciseCount} onChange={(event) => setDraft({ ...draft, exerciseCount: Number(event.target.value) })}>{[10, 15, 20, 25, 50].map((count) => <option key={count} value={count}>{count}</option>)}</select></label>
+          <label>{t.countLabel}<select value={draft.exerciseCount} onChange={(event) => setDraft({ ...draft, exerciseCount: Number(event.target.value) })}>{[10, 25, 50].map((count) => <option key={count} value={count}>{count}</option>)}</select></label>
           <button className="primary" onClick={beginSelectedPractice}>{t.startPractice} <span>›</span></button>
         </div>
       </section>}
@@ -278,7 +279,7 @@ function App() {
           <div className="stats"><div><Sparkles /><span>{t.exercises}</span><b>{saved.exercises.length}</b></div><div><Check /><span>{t.correct}</span><b>{correctCount}</b></div><div><Trophy /><span>{t.accuracy}</span><b>{accuracy}%</b></div></div>
           <div className="congrats-note"><p><b>{completionNote.title}</b><span>{completionNote.text}</span></p></div>
         </div>
-        <button className="primary completion-continue" onClick={() => { setDraft(saved.config); setSaved((current) => ({ ...current, screen: 'setup' })); }}>{t.newPractice} {direction === 'rtl' ? <ChevronLeft /> : <ChevronRight />}</button>
+        <button className="primary completion-continue" onClick={() => { setDraft({ ...saved.config, exerciseCount: normalizeExerciseCount(saved.config.exerciseCount) }); setSaved((current) => ({ ...current, screen: 'setup' })); }}>{t.newPractice} {direction === 'rtl' ? <ChevronLeft /> : <ChevronRight />}</button>
         <button className="outline completion-share" onClick={sendAnswers}><Share2 /> {t.shareResults}</button>
       </section>}
 
