@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Check, ChevronRight, CircleHelp, Home, Share2, Sparkles, Trophy, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, ChevronLeft, ChevronRight, CircleHelp, Share2, Sparkles, Trophy, X } from 'lucide-react';
 import { generateWorksheet, operandText, parseAnswer, signFor, validateAnswer, type Difficulty, type MathExercise, type Status, type WorksheetConfig } from './features/math/engine';
+import { difficultyNames, gradeNames, languageLabel, languageNames, localeFor, translations, type Language } from './i18n';
 import './styles.css';
 
 declare const __APP_VERSION__: string;
@@ -10,9 +11,16 @@ type Saved = { screen: Screen; config: WorksheetConfig; exercises: MathExercise[
 
 const KEY = 'numo.session.v1';
 const CONFIG_KEY = 'numo.config.v1';
+const LANGUAGE_KEY = 'numo.language.v1';
 const initial: WorksheetConfig = { grade: 3, difficulty: 'medium', exerciseCount: 25 };
-const grades = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳'];
-const difficultyText: Record<Difficulty, string> = { easy: 'קל', medium: 'בינוני', hard: 'קשה' };
+const format = (text: string, values: Record<string, string | number>) => text.replace(/\{(\w+)\}/g, (_match, key: string) => String(values[key] ?? ''));
+
+function getLanguage(): Language {
+  try {
+    const language = localStorage.getItem(LANGUAGE_KEY);
+    return language === 'he' || language === 'en' || language === 'ru' || language === 'ar' ? language : 'he';
+  } catch { return 'he'; }
+}
 
 function getSaved(): Saved | null {
   try {
@@ -47,49 +55,63 @@ function getConfig(): WorksheetConfig | null {
   }
 }
 
-function Mascot({ big = false }: { big?: boolean }) {
-  return <div className={`mascot ${big ? 'mascot-big' : ''}`} role="img" aria-label="נונו, חבר חשבון שמח"><span className="wand">✦</span><span className="eyes">• •</span><span className="smile">⌣</span></div>;
+function LanguagePicker({ language, onChange }: { language: Language; onChange: (language: Language) => void }) {
+  return <label className="language-picker"><span className="sr-only">{languageLabel[language]}</span><select aria-label={languageLabel[language]} value={language} onChange={(event) => onChange(event.target.value as Language)}>{(['he', 'en', 'ru', 'ar'] as Language[]).map((item) => <option key={item} value={item}>{languageNames[item]}</option>)}</select></label>;
 }
 
-function Logo() {
-  return <img className="logo" src={`${import.meta.env.BASE_URL}assets/numo-logo.svg`} alt="Numo" />;
+function Mascot({ big = false, label }: { big?: boolean; label: string }) {
+  return <div className={`mascot ${big ? 'mascot-big' : ''}`} role="img" aria-label={label}><span className="wand">✦</span><span className="eyes">• •</span><span className="smile">⌣</span></div>;
+}
+
+function Logo({ alt }: { alt: string }) {
+  return <img className="logo" src={`${import.meta.env.BASE_URL}assets/numo-logo.svg`} alt={alt} />;
 }
 
 function App() {
+  const [language, setLanguage] = useState<Language>(getLanguage);
   const [saved, setSaved] = useState<Saved>(() => {
     const restored = getSaved();
     return restored ? { ...restored, screen: 'welcome' } : { screen: 'welcome', config: initial, exercises: [] };
   });
   const [draft, setDraft] = useState<WorksheetConfig>(() => getConfig() ?? saved.config ?? initial);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [live, setLive] = useState('');
   const [emptySubmission, setEmptySubmission] = useState(false);
+  const t = translations[language];
+  const grades = gradeNames[language];
+  const difficultyText = difficultyNames[language];
+  const direction = language === 'he' || language === 'ar' ? 'rtl' : 'ltr';
   useEffect(() => localStorage.setItem(KEY, JSON.stringify(saved)), [saved]);
   useEffect(() => localStorage.setItem(CONFIG_KEY, JSON.stringify(draft)), [draft]);
+  useEffect(() => {
+    localStorage.setItem(LANGUAGE_KEY, language);
+    document.documentElement.lang = language;
+    document.documentElement.dir = direction;
+    document.title = t.appTitle;
+    document.querySelector<HTMLMetaElement>('meta[name="description"]')?.setAttribute('content', t.appDescription);
+  }, [language, direction, t]);
 
   const answered = useMemo(() => saved.exercises.filter((exercise) => parseAnswer(exercise.userAnswer) !== null).length, [saved.exercises]);
   const correctCount = useMemo(() => saved.exercises.filter((exercise) => exercise.status === 'correct').length, [saved.exercises]);
   const accuracy = saved.exercises.length ? Math.round((correctCount / saved.exercises.length) * 100) : 0;
-  const completionTitle = accuracy === 100 ? 'מושלם!' : accuracy >= 80 ? 'כל הכבוד!' : accuracy >= 50 ? 'עבודה טובה!' : 'סיימת את התרגול!';
+  const completionTitle = accuracy === 100 ? t.complete100 : accuracy >= 80 ? t.complete80 : accuracy >= 50 ? t.complete50 : t.completeLow;
   const completionNote = accuracy === 100
-    ? { title: 'הישג נהדר!', text: 'פתרת את כל התרגילים נכון.' }
+    ? { title: t.congrats100, text: t.congrats100Text }
     : accuracy >= 80
-      ? { title: 'עבודה מצוינת!', text: 'רוב התשובות נכונות. ממשיכים כך!' }
+      ? { title: t.congrats80, text: t.congrats80Text }
       : accuracy >= 50
-        ? { title: 'התקדמות יפה!', text: 'עברו על התרגילים שסומנו ונסו להשתפר.' }
-        : { title: 'כל הכבוד על המאמץ!', text: 'אפשר לעבור על התרגילים ולתרגל שוב.' };
+        ? { title: t.congrats50, text: t.congrats50Text }
+        : { title: t.congratsLow, text: t.congratsLowText };
   const isWork = saved.screen === 'worksheet' || saved.screen === 'checking';
 
   function start(config = draft) {
     setSaved({ screen: 'worksheet', config, exercises: generateWorksheet(config) });
     setDraft(config);
     setEmptySubmission(false);
-    setLive('נוצר דף תרגול חדש');
+    setLive(t.startPractice);
   }
 
   function beginSelectedPractice() {
-    if (saved.exercises.length && !saved.completedAt) setShowConfirm(true);
-    else start(draft);
+    start(draft);
   }
 
   function update(id: string, value: string) {
@@ -103,7 +125,7 @@ function App() {
   function check() {
     if (saved.exercises.every((exercise) => exercise.userAnswer.trim() === '')) {
       setEmptySubmission(true);
-      setLive('יש לענות על תרגיל אחד לפחות לפני הצגת הציון.');
+      setLive(t.emptyRequired);
       document.querySelector<HTMLInputElement>('.exercise-row input')?.focus();
       return;
     }
@@ -113,7 +135,7 @@ function App() {
     const allReviewed = exercises.every((exercise) => exercise.status === 'correct' || exercise.status === 'incorrect');
     const finish = allCorrect || (saved.screen === 'checking' && allReviewed);
     setSaved((current) => ({ ...current, exercises, screen: finish ? 'complete' : 'checking', completedAt: finish ? new Date().toISOString() : undefined }));
-    setLive(finish ? 'כל הכבוד!' : 'הבדיקה הסתיימה. אפשר לתקן ולנסות שוב.');
+    setLive(finish ? t.finishScore : t.fixAnswers);
   }
 
   function goHome() {
@@ -127,25 +149,25 @@ function App() {
       const rows = saved.exercises.length;
       const scale = 2;
       canvas.width = 900 * scale;
-      canvas.height = (430 + rows * 76) * scale;
+      canvas.height = (430 + rows * 96) * scale;
       const context = canvas.getContext('2d');
       if (!context) return reject(new Error('Canvas unavailable'));
       context.scale(scale, scale);
       context.fillStyle = '#fff';
-      context.fillRect(0, 0, 900, 430 + rows * 76);
+      context.fillRect(0, 0, 900, 430 + rows * 96);
       context.fillStyle = '#102c68';
       context.textAlign = 'center';
       context.font = 'bold 42px Arial';
-      context.fillText('NUMO — חשבון בכיף', 450, 62);
+      context.fillText(t.worksheetHeading, 450, 62);
       context.font = 'bold 30px Arial';
-      context.fillText('פתרתי את כל התרגילים בהצלחה!', 450, 112);
+      context.fillText(t.worksheetMessage, 450, 112);
       context.font = '22px Arial';
-      context.fillText(`כיתה ${grades[saved.config.grade - 1]} · רמה ${difficultyText[saved.config.difficulty]} · ${new Date().toLocaleDateString('he-IL')}`, 450, 156);
+      context.fillText(`${t.gradeWord} ${grades[saved.config.grade - 1]} · ${t.difficultyWord} ${difficultyText[saved.config.difficulty]} · ${new Date().toLocaleDateString(localeFor[language])}`, 450, 156);
       saved.exercises.forEach((exercise, index) => {
-        const y = 218 + index * 76;
+        const y = 218 + index * 96;
         context.fillStyle = index % 2 ? '#f7f9ff' : '#eef6ff';
         context.beginPath();
-        context.roundRect(54, y, 792, 60, 16);
+        context.roundRect(54, y, 792, 82, 16);
         context.fill();
         context.fillStyle = '#102c68';
         context.font = 'bold 22px Arial';
@@ -154,113 +176,107 @@ function App() {
         context.fillText(`${index + 1}.`, 812, y + 39);
         context.direction = 'ltr';
         context.textAlign = 'left';
-        context.fillText(exercise.displayExpression ?? `${operandText(exercise, 'a')} ${signFor(exercise.operation)} ${operandText(exercise, 'b')} = ${exercise.correctAnswer}`, 130, y + 39);
+        context.fillText(exercise.displayExpression ?? `${operandText(exercise, 'a')} ${signFor(exercise.operation)} ${operandText(exercise, 'b')} =`, 130, y + 34);
+        context.font = '18px Arial';
+        context.direction = direction;
+        context.textAlign = direction === 'rtl' ? 'right' : 'left';
+        context.fillText(`${t.answer}: ${exercise.userAnswer || '—'}   ·   ${t.correctAnswer}: ${exercise.correctAnswer}`, direction === 'rtl' ? 846 : 130, y + 64);
       });
       canvas.toBlob((blob) => blob ? resolve(new File([blob], 'numo-worksheet.png', { type: 'image/png' })) : reject(new Error('PNG export failed')), 'image/png');
     });
   }
 
-  function printWorksheet() {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      setLive('לא ניתן לפתוח חלון חדש לשמירת PDF');
-      return;
-    }
-    const rows = saved.exercises.map((exercise, index) => `<tr><td>${index + 1}</td><td dir="ltr">${exercise.displayExpression ?? `${operandText(exercise, 'a')} ${signFor(exercise.operation)} ${operandText(exercise, 'b')} = ${exercise.correctAnswer}`}</td></tr>`).join('');
-    printWindow.document.write(`<!doctype html><html lang="he" dir="rtl"><meta charset="utf-8"><title>דף התרגול שלי — NUMO</title><style>body{font-family:Arial,sans-serif;color:#102c68;padding:28px}h1,p{text-align:center}table{border-collapse:separate;border-spacing:0 7px;width:100%}td{padding:12px;background:#f2f7ff;font-size:18px}td:first-child{width:55px;text-align:center;border-radius:0 12px 12px 0}td:last-child{direction:ltr;text-align:left;border-radius:12px 0 0 12px}@media print{tr{break-inside:avoid}}</style><h1>NUMO — חשבון בכיף</h1><p>פתרתי את התרגילים בהצלחה!</p><p>כיתה ${grades[saved.config.grade - 1]} · רמה ${difficultyText[saved.config.difficulty]} · ${new Date(saved.completedAt ?? Date.now()).toLocaleDateString('he-IL')}</p><table>${rows}</table></html>`);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-  }
-
-  async function share() {
+  async function sendAnswers() {
+    const whatsAppTab = window.open('about:blank', '_blank');
     try {
       const file = await exportCanvas();
-      if ('share' in navigator && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ title: 'דף התרגול שלי', text: 'כל הכבוד! פתרתי את התרגילים.', files: [file] });
+      if (navigator.canShare?.({ files: [file] }) && navigator.share) {
+        whatsAppTab?.close();
+        await navigator.share({ title: t.shareTitle, text: t.shareText, files: [file] });
         return;
       }
       const url = URL.createObjectURL(file);
       const link = document.createElement('a');
-      link.href = url;
-      link.download = file.name;
-      link.click();
-      URL.revokeObjectURL(url);
-      setLive('התמונה נשמרה במכשיר');
+      link.href = url; link.download = file.name; link.click();
+      const message = encodeURIComponent(t.whatsappText);
+      if (whatsAppTab) whatsAppTab.location.href = `https://wa.me/?text=${message}`;
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setLive(t.imageSaved);
     } catch (error) {
+      whatsAppTab?.close();
       if (error instanceof Error && error.name === 'AbortError') return;
-      printWorksheet();
+      setLive(t.shareFailed);
     }
   }
 
+  const languagePicker = <LanguagePicker language={language} onChange={setLanguage} />;
+
   return (
-    <main className={`shell${saved.screen === 'checking' ? ' checking-screen' : ''}${isWork ? ' work-screen' : ''}`}>
+    <main className={`shell${saved.screen === 'checking' ? ' checking-screen' : ''}${isWork ? ' work-screen' : ''}${saved.screen === 'complete' ? ' complete-screen' : ''}`} dir={direction}>
       <div className="decor d1" />
       <div className="decor d2" />
       <div className="decor d3" />
       <p className="sr-only" aria-live="polite">{live}</p>
 
       {saved.screen === 'welcome' && <section className="welcome">
-        <div className="brand"><img className="welcome-mascot" src={`${import.meta.env.BASE_URL}assets/numo-mascot.svg`} alt="Numo מניף שרביט קסמים" /><Logo /></div>
-        <h1>היי, אלופי החשבון!</h1>
-        <p className="lead">בואו לפתור, לגלות וליהנות מכל תרגיל!</p>
+        <header className="welcome-top">{languagePicker}</header>
+        <div className="brand"><img className="welcome-mascot" src={`${import.meta.env.BASE_URL}assets/numo-mascot.svg`} alt={t.mascotAlt} /><Logo alt={t.logoAlt} /></div>
+        <h1>{t.welcomeTitle}</h1>
+        <p className="lead">{t.welcomeLead}</p>
         <div className="welcome-actions">
-          <button className="primary" onClick={() => setSaved((current) => ({ ...current, screen: 'setup' }))}>בואו נתחיל <span>›</span></button>
-          {saved.exercises.some((exercise) => exercise.status !== 'correct') && <button className="outline" onClick={() => setSaved((current) => ({ ...current, screen: current.exercises.some((exercise) => exercise.status === 'incorrect' || exercise.status === 'correct') ? 'checking' : 'worksheet' }))}>המשך תרגול שמור</button>}
+          <button className="primary" onClick={() => setSaved((current) => ({ ...current, screen: 'setup' }))}>{t.start} <span>›</span></button>
+          {saved.exercises.some((exercise) => exercise.status !== 'correct') && <button className="outline" onClick={() => setSaved((current) => ({ ...current, screen: current.exercises.some((exercise) => exercise.status === 'incorrect' || exercise.status === 'correct') ? 'checking' : 'worksheet' }))}>{t.resume}</button>}
         </div>
-        <small>גרסה {__APP_VERSION__}</small>
+        <small>{t.version} {__APP_VERSION__}</small>
       </section>}
 
       {saved.screen === 'setup' && <section className="setup">
-        <header className="top"><button className="icon-btn" aria-label="חזרה" onClick={() => setSaved((current) => ({ ...current, screen: 'welcome' }))}><ArrowLeft /></button><Logo /></header>
-        <h1 className="page-title">בוחרים תרגול</h1>
-        <p className="setup-intro">{draft.grade === 1 ? 'בכיתה א׳ התרגילים מותאמים לרמה: קל עד 10, בינוני עד 15, וקשה עד 20.' : 'בכל כיתה התרגילים מותאמים לנושאים שנלמדים בה. בכל רמה עולים בהדרגה במספרים ובמורכבות.'}</p>
+        <header className="top"><button className="icon-btn" aria-label={t.back} onClick={() => setSaved((current) => ({ ...current, screen: 'welcome' }))}><ArrowLeft /></button><Logo alt={t.logoAlt} /></header>
+        <h1 className="page-title">{t.setupTitle}</h1>
+        <p className="setup-intro">{draft.grade === 1 ? t.introGradeOne : t.introOther}</p>
         <div className="welcome-card">
-          <label>בחרו כיתה<select value={draft.grade} onChange={(event) => setDraft({ ...draft, grade: Number(event.target.value) })}>{grades.map((grade, index) => <option key={grade} value={index + 1}>{grade}</option>)}</select></label>
-          <label>בחרו רמה<select value={draft.difficulty} onChange={(event) => setDraft({ ...draft, difficulty: event.target.value as Difficulty })}>{Object.entries(difficultyText).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-          <label>כמה תרגילים?<select value={draft.exerciseCount} onChange={(event) => setDraft({ ...draft, exerciseCount: Number(event.target.value) })}>{[10, 15, 20, 25, 50].map((count) => <option key={count} value={count}>{count}</option>)}</select></label>
-          <button className="primary" onClick={beginSelectedPractice}>התחילו לתרגל <span>›</span></button>
+          <label>{t.gradeLabel}<select value={draft.grade} onChange={(event) => setDraft({ ...draft, grade: Number(event.target.value) })}>{grades.map((grade, index) => <option key={grade} value={index + 1}>{language === 'he' ? grade : `${t.gradeWord} ${grade}`}</option>)}</select></label>
+          <label>{t.difficultyLabel}<select value={draft.difficulty} onChange={(event) => setDraft({ ...draft, difficulty: event.target.value as Difficulty })}>{Object.entries(difficultyText).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+          <label>{t.countLabel}<select value={draft.exerciseCount} onChange={(event) => setDraft({ ...draft, exerciseCount: Number(event.target.value) })}>{[10, 15, 20, 25, 50].map((count) => <option key={count} value={count}>{count}</option>)}</select></label>
+          <button className="primary" onClick={beginSelectedPractice}>{t.startPractice} <span>›</span></button>
         </div>
       </section>}
 
       {isWork && <>
-        <header className="top"><button className="icon-btn" aria-label="חזרה" onClick={() => setSaved((current) => ({ ...current, screen: 'welcome' }))}><ArrowLeft /></button><Logo /></header>
-        <h1 className="page-title">{saved.screen === 'worksheet' ? 'פותרים תרגילים' : 'בדיקת תשובות'}</h1>
-        <div className="summary"><span>תרגילים <b>{saved.exercises.length}</b></span><span>רמה <b>{difficultyText[saved.config.difficulty]}</b></span><span>כיתה <b>{grades[saved.config.grade - 1]}</b></span></div>
+        <header className="top"><button className="icon-btn" aria-label={t.back} onClick={() => setSaved((current) => ({ ...current, screen: 'welcome' }))}><ArrowLeft /></button><Logo alt={t.logoAlt} /></header>
+        <h1 className="page-title">{saved.screen === 'worksheet' ? t.workTitle : t.checkingTitle}</h1>
+        <div className="summary"><span>{t.exercises} <b>{saved.exercises.length}</b></span><span>{t.difficultyWord} <b>{difficultyText[saved.config.difficulty]}</b></span><span>{t.gradeWord} <b>{grades[saved.config.grade - 1]}</b></span></div>
         <div className="progress-line"><span>{answered}/{saved.exercises.length}</span><div className="track"><div style={{ width: `${saved.exercises.length ? answered / saved.exercises.length * 100 : 0}%` }} /></div></div>
-        <p className="progress-label">ענית על {answered} מתוך {saved.exercises.length} תרגילים</p>
-        {emptySubmission && <p className="empty-submission" role="alert">יש לענות על תרגיל אחד לפחות לפני הצגת הציון.</p>}
-        {saved.screen === 'checking' && <div className="notice"><Mascot />{saved.exercises.some((exercise) => !exercise.userAnswer.trim()) ? 'גללו למטה וענו על כל התרגילים.' : 'יש תרגילים שצריך לתקן. נסו שוב!'}</div>}
-        <div className="exercise-list">{saved.exercises.map((exercise, index) => <ExerciseRow key={exercise.id} exercise={exercise} index={index} checking={saved.screen === 'checking'} onChange={(value) => update(exercise.id, value)} />)}</div>
-        <button className="primary submit" onClick={check}><Check /> {saved.screen === 'worksheet' ? 'בדיקת תשובות' : saved.exercises.some((exercise) => !exercise.userAnswer.trim()) ? 'בדיקת התקדמות' : 'סיום והצגת ציון'}</button>
+        <p className="progress-label">{format(t.progressSentence, { answered, total: saved.exercises.length })}</p>
+        {emptySubmission && <p className="empty-submission" role="alert">{t.emptyRequired}</p>}
+        {saved.screen === 'checking' && <div className="notice"><Mascot label={t.mascotAlt} />{saved.exercises.some((exercise) => !exercise.userAnswer.trim()) ? t.missingAnswers : t.fixAnswers}</div>}
+        <div className="exercise-list">{saved.exercises.map((exercise, index) => <ExerciseRow key={exercise.id} exercise={exercise} index={index} checking={saved.screen === 'checking'} onChange={(value) => update(exercise.id, value)} t={t} />)}</div>
+        <button className="primary submit" onClick={check}><Check /> {saved.screen === 'worksheet' ? t.checkAnswers : saved.exercises.some((exercise) => !exercise.userAnswer.trim()) ? t.checkProgress : t.finishScore}</button>
       </>}
 
       {saved.screen === 'complete' && <section className="complete">
-        <header className="top"><button className="icon-btn" aria-label="חזרה למסך הבית" onClick={goHome}><ArrowLeft /></button><Logo /></header>
-        <h1>{completionTitle}</h1>
-        <p className="lead">ענית נכון על {correctCount} מתוך {saved.exercises.length} תרגילים.</p>
-        <img className="completion-mascot" src={`${import.meta.env.BASE_URL}assets/numo-mascot.svg`} alt="Numo חוגג עם שרביט קסמים" />
-        <div className="stats"><div><Sparkles /><span>תרגילים</span><b>{saved.exercises.length}</b></div><div><Check /><span>נכונים</span><b>{correctCount}</b></div><div><Trophy /><span>דיוק</span><b>{accuracy}%</b></div></div>
-        <p className="date">הושלם בתאריך {new Date(saved.completedAt ?? Date.now()).toLocaleDateString('he-IL')}</p>
-        <div className="congrats-note"><Trophy aria-hidden="true" /><p><b>{completionNote.title}</b><span>{completionNote.text}</span></p></div>
-        <button className="primary completion-continue" onClick={() => { setDraft(saved.config); setSaved((current) => ({ ...current, screen: 'setup' })); }}>תרגול חדש <ChevronRight /></button>
-        <button className="outline completion-home" onClick={goHome}><Home /> חזרה למסך הבית</button>
-        <details className="export-options"><summary>שיתוף והורדת דף התרגול</summary><div><button className="text-btn" onClick={share}><Share2 /> שתף להורה</button><button className="text-btn" onClick={printWorksheet}>הורדת PDF</button></div></details>
-        <small>גרסה {__APP_VERSION__}</small>
+        <header className="top"><button className="icon-btn" aria-label={t.home} onClick={goHome}>{direction === 'rtl' ? <ArrowRight /> : <ArrowLeft />}</button><Logo alt={t.logoAlt} /></header>
+        <div className="completion-card">
+          <img className="completion-mascot" src={`${import.meta.env.BASE_URL}assets/numo-mascot.svg`} alt={t.mascotCelebrating} />
+          <h1>{completionTitle}</h1>
+          <div className="stats"><div><Sparkles /><span>{t.exercises}</span><b>{saved.exercises.length}</b></div><div><Check /><span>{t.correct}</span><b>{correctCount}</b></div><div><Trophy /><span>{t.accuracy}</span><b>{accuracy}%</b></div></div>
+          <div className="congrats-note"><Trophy aria-hidden="true" /><p><b>{completionNote.title}</b><span>{completionNote.text}</span></p></div>
+        </div>
+        <button className="primary completion-continue" onClick={() => { setDraft(saved.config); setSaved((current) => ({ ...current, screen: 'setup' })); }}>{t.newPractice} {direction === 'rtl' ? <ChevronLeft /> : <ChevronRight />}</button>
+        <button className="outline completion-share" onClick={sendAnswers}><Share2 /> {t.shareResults}</button>
       </section>}
 
-      {showConfirm && <div className="modal-backdrop" role="presentation"><div className="modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title"><h2 id="confirm-title">להתחיל תרגול חדש?</h2><p>ההתקדמות הנוכחית תימחק.</p><div><button className="outline" onClick={() => setShowConfirm(false)}>ביטול</button><button className="primary" onClick={() => { setShowConfirm(false); start(draft); }}>תרגול חדש</button></div></div></div>}
     </main>
   );
 }
 
-function ExerciseRow({ exercise, index, checking, onChange }: { exercise: MathExercise; index: number; checking: boolean; onChange: (value: string) => void }) {
+function ExerciseRow({ exercise, index, checking, onChange, t }: { exercise: MathExercise; index: number; checking: boolean; onChange: (value: string) => void; t: (typeof translations)[Language] }) {
   const status = exercise.status;
-  const statusLabel = status === 'correct' ? 'תשובה נכונה' : status === 'incorrect' ? 'תשובה שגויה' : 'לא נענתה';
+  const statusLabel = status === 'correct' ? t.statusCorrect : status === 'incorrect' ? t.statusIncorrect : t.statusUnanswered;
   return <div className={`exercise-row ${checking ? status : ''}`}>
     <span className="number">{index + 1}</span>
     <span className="equation" dir="ltr">{exercise.displayExpression ?? `${operandText(exercise, 'a')} ${signFor(exercise.operation)} ${operandText(exercise, 'b')} =`}</span>
-    <label className="sr-only" htmlFor={`answer-${exercise.id}`}>תשובה לתרגיל {index + 1}: {exercise.displayExpression ?? `${operandText(exercise, 'a')} ${signFor(exercise.operation)} ${operandText(exercise, 'b')}`}</label>
+    <label className="sr-only" htmlFor={`answer-${exercise.id}`}>{format(t.exerciseAnswerLabel, { index: index + 1, expression: exercise.displayExpression ?? `${operandText(exercise, 'a')} ${signFor(exercise.operation)} ${operandText(exercise, 'b')}` })}</label>
     <input id={`answer-${exercise.id}`} type="text" inputMode={exercise.displayOperandA || exercise.displayOperandB || exercise.displayExpression ? 'text' : 'decimal'} autoComplete="off" value={exercise.userAnswer} onChange={(event) => onChange(event.target.value)} disabled={checking && status === 'correct'} aria-invalid={checking && status === 'incorrect'} aria-describedby={checking ? `status-${exercise.id}` : undefined} />
     {checking && <span id={`status-${exercise.id}`} className="status" aria-label={statusLabel}>{status === 'correct' ? <Check /> : status === 'incorrect' ? <X /> : <CircleHelp />}<span className="sr-only">{statusLabel}</span></span>}
   </div>;
