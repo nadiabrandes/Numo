@@ -263,6 +263,9 @@ function App() {
       </>}
 
       {saved.screen === 'complete' && <section className="complete">
+        <div className="completion-confetti" aria-hidden="true">
+          {Array.from({ length: 18 }, (_, index) => <i key={index} className={`confetti-piece drift-${index % 4}`} style={{ left: `${(index * 37) % 100}%`, animationDelay: `${(index % 7) * 90}ms`, animationDuration: `${1900 + (index % 4) * 180}ms` }} />)}
+        </div>
         <header className="top"><button className="icon-btn" aria-label={t.home} onClick={goHome}>{direction === 'rtl' ? <ArrowRight /> : <ArrowLeft />}</button><Logo alt={t.logoAlt} /></header>
         <div className="completion-card">
           <img className="completion-mascot" src={`${import.meta.env.BASE_URL}assets/numo-mascot.svg`} alt={t.mascotCelebrating} />

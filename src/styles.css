@@ -426,3 +426,16 @@ body,#root{min-height:100svh}
 .shell.complete-screen:dir(ltr) .complete .stats div+div{border-left:0;border-right:2px solid #d7e9fc}
 .shell.complete-screen:dir(ltr) .complete .congrats-note p{text-align:left}
 @media(max-height:740px){.complete{gap:10px}.complete .top{height:60px}.completion-card{gap:10px;padding-block:14px}.complete .completion-mascot{width:112px;max-height:120px}.complete .stats{min-height:128px;padding-block:10px}.complete .congrats-note{min-height:84px}.complete .completion-continue,.complete .completion-share{min-height:56px}}
+.completion-confetti{position:fixed;inset:0;z-index:4;overflow:hidden;pointer-events:none}
+.confetti-piece{position:absolute;top:-24px;display:block;width:10px;height:17px;border-radius:3px;background:#1677f2;animation-name:completion-confetti-fall;animation-timing-function:cubic-bezier(.2,.65,.35,1);animation-fill-mode:both}
+.confetti-piece:nth-child(3n){background:#ffc83d;border-radius:50%}
+.confetti-piece:nth-child(3n + 1){background:#7c4dff}
+.confetti-piece:nth-child(3n + 2){background:#20bf7b;width:8px;height:20px}
+.confetti-piece.drift-0{--confetti-drift:-54px}
+.confetti-piece.drift-1{--confetti-drift:42px}
+.confetti-piece.drift-2{--confetti-drift:-24px}
+.confetti-piece.drift-3{--confetti-drift:62px}
+.complete .completion-mascot{animation:completion-mascot-pop 900ms cubic-bezier(.2,.8,.3,1.2) both}
+@keyframes completion-confetti-fall{0%{transform:translate3d(0,-4vh,0) rotate(0);opacity:0}12%{opacity:1}100%{transform:translate3d(var(--confetti-drift),108vh,0) rotate(720deg);opacity:0}}
+@keyframes completion-mascot-pop{0%{transform:translateY(14px) scale(.82)}55%{transform:translateY(-8px) scale(1.06)}78%{transform:translateY(2px) scale(.98)}100%{transform:translateY(0) scale(1)}}
+@media(prefers-reduced-motion:reduce){.completion-confetti{display:none}.complete .completion-mascot{animation:none}}
