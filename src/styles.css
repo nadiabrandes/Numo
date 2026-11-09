@@ -419,8 +419,9 @@ body,#root{min-height:100svh}
 .complete .completion-continue,.complete .completion-share{width:100%;max-width:none;min-height:clamp(62px,13.5vw,138px);margin:0;padding:12px 24px;border-radius:clamp(24px,4.5vw,44px);font-size:clamp(21px,4.8vw,46px);font-weight:800}
 .complete .completion-continue{background:linear-gradient(110deg,#078ff2,#0874f6);box-shadow:0 8px 18px #0874f522}
 .complete .completion-continue svg{width:clamp(26px,4vw,42px);height:clamp(26px,4vw,42px)}
-.complete .completion-share{border:3px solid #16a765;background:#fff;box-shadow:none;color:#087c49}
+.complete .completion-share{position:relative;z-index:2;pointer-events:auto;touch-action:manipulation;border:3px solid #16a765;background:#fff;box-shadow:none;color:#087c49}
 .complete .completion-share svg{width:clamp(26px,4vw,42px);height:clamp(26px,4vw,42px);stroke-width:2.5}
+.complete .share-error{width:100%;margin:0;padding:10px 14px;border-radius:14px;background:#fff0ef;color:#a52a26;font-size:16px;font-weight:700;text-align:center}
 .complete::before{content:none}
 .shell.complete-screen:dir(ltr) .complete .stats div+div{border-left:0;border-right:2px solid #d7e9fc}
 .shell.complete-screen:dir(ltr) .complete .congrats-note p{text-align:left}

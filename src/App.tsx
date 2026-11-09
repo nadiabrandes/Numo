@@ -77,6 +77,7 @@ function App() {
   const [draft, setDraft] = useState<WorksheetConfig>(() => getConfig() ?? (saved.config ? { ...saved.config, exerciseCount: normalizeExerciseCount(saved.config.exerciseCount) } : initial));
   const [live, setLive] = useState('');
   const [emptySubmission, setEmptySubmission] = useState(false);
+  const [shareError, setShareError] = useState(false);
   const t = translations[language];
   const grades = gradeNames[language];
   const difficultyText = difficultyNames[language];
@@ -189,17 +190,20 @@ function App() {
   }
 
   async function sendAnswers() {
+    setShareError(false);
     let file: File;
     try {
       file = exportCanvas();
     } catch {
       setLive(t.shareFailed);
+      setShareError(true);
       return;
     }
 
     const share = (navigator as unknown as { share?: (data: ShareData) => Promise<void> }).share;
     if (!share) {
       setLive(t.shareFailed);
+      setShareError(true);
       return;
     }
     // Pass the image file directly to the system share sheet. WhatsApp will
@@ -209,6 +213,7 @@ function App() {
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return;
       setLive(t.shareFailed);
+      setShareError(true);
     }
   }
 
@@ -266,7 +271,8 @@ function App() {
           <div className="congrats-note"><p><b>{completionNote.title}</b><span>{completionNote.text}</span></p></div>
         </div>
         <button className="primary completion-continue" onClick={() => { setDraft({ ...saved.config, exerciseCount: normalizeExerciseCount(saved.config.exerciseCount) }); setSaved((current) => ({ ...current, screen: 'setup' })); }}>{t.newPractice} {direction === 'rtl' ? <ChevronLeft /> : <ChevronRight />}</button>
-        <button className="outline completion-share" onClick={sendAnswers}><Share2 /> {t.shareResults}</button>
+        <button type="button" className="outline completion-share" onClick={sendAnswers}><Share2 /> {t.shareResults}</button>
+        {shareError && <p className="share-error" role="alert">{t.shareFailed}</p>}
       </section>}
 
     </main>
