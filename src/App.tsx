@@ -200,8 +200,8 @@ function App() {
       return;
     }
 
-    const share = (navigator as unknown as { share?: (data: ShareData) => Promise<void> }).share;
-    if (!share) {
+    const shareNavigator = navigator as unknown as { share?: (data: ShareData) => Promise<void> };
+    if (typeof shareNavigator.share !== 'function') {
       setLive(t.shareFailed);
       setShareError(true);
       return;
@@ -209,7 +209,7 @@ function App() {
     // Pass the image file directly to the system share sheet. WhatsApp will
     // receive it as an attachment when selected as the share target.
     try {
-      await share({ title: t.shareTitle, text: t.shareText, files: [file] });
+      await shareNavigator.share({ title: t.shareTitle, text: t.shareText, files: [file] });
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return;
       setLive(t.shareFailed);
