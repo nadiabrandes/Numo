@@ -235,7 +235,10 @@ function App() {
           <button className="primary" onClick={() => setSaved((current) => ({ ...current, screen: 'setup' }))}>{t.start} <span>›</span></button>
           {saved.exercises.some((exercise) => exercise.status !== 'correct') && <button className="outline" onClick={() => setSaved((current) => ({ ...current, screen: current.exercises.some((exercise) => exercise.status === 'incorrect' || exercise.status === 'correct') ? 'checking' : 'worksheet' }))}>{t.resume}</button>}
         </div>
-        <small>{t.version} {__APP_VERSION__}</small>
+        <footer className="welcome-footer">
+          <div className="maker-credit"><span>made by</span><img src={`${import.meta.env.BASE_URL}assets/orvixu-logo.svg`} alt="ORVIXU" /></div>
+          <small>{t.version} {__APP_VERSION__}</small>
+        </footer>
       </section>}
 
       {saved.screen === 'setup' && <section className="setup">
